@@ -2,15 +2,16 @@
 import m from "mithril"
 import {List} from "../gui/base/List"
 import {load, loadAll} from "../api/main/Entity"
+import type {Contact} from "../api/entities/tutanota/Contact"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactView} from "./ContactView"
 import {GENERATED_MAX_ID} from "../api/common/EntityFunctions"
-import {compareContacts, LazyContactListId, getContactListName} from "./ContactUtils"
+import type {ContactComparator} from "./ContactUtils"
+import {getContactListName, LazyContactListId} from "./ContactUtils"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {NotFoundError} from "../api/common/error/RestError"
 import {size} from "../gui/size"
-import type {Contact} from "../api/entities/tutanota/Contact"
 
 assertMainOrNode()
 
@@ -21,8 +22,9 @@ export class ContactListView {
 	contactView: ContactView;
 	list: List<Contact, ContactRow>;
 	view: Function;
+	contactComparator: boolean;
 
-	constructor(contactListId: Id, contactView: ContactView) {
+	constructor(contactListId: Id, contactView: ContactView, contactComparator: ContactComparator) {
 		this.listId = contactListId
 		this.contactView = contactView
 		this.list = new List({
@@ -46,7 +48,7 @@ export class ContactListView {
 					// we return null if the entity does not exist
 				})
 			},
-			sortCompare: compareContacts,
+			sortCompare: contactComparator,
 
 			elementSelected: (entities, elementClicked, selectionChanged, multiSelectionActive) => contactView.elementSelected(entities, elementClicked, selectionChanged, multiSelectionActive),
 			createVirtualRow: () => new ContactRow(),

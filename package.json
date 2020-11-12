@@ -12,7 +12,9 @@
 		"test": "cd test && node test api && node test client",
 		"testapi": "cd test && node test api",
 		"testclient": "cd test && node test client",
-		"postinstall": "electron-builder install-app-deps"
+		"postinstall": "electron-builder install-app-deps",
+	    "wrapWithEnv" : "npm run $COMMAND >build/console.log 2>&1",
+	  	"make" : "node make"
 	},
 	"dependencies": {
 		"autolinker": "3.11.1",

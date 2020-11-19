@@ -1,6 +1,5 @@
 //@flow
 import {MailTypeRef} from "../../entities/tutanota/Mail"
-import {DbTransaction, ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./DbFacade"
 import {resolveTypeReference} from "../../common/EntityFunctions"
 import {tokenize} from "./Tokenizer"
 import {arrayHash, contains, flat} from "../../common/utils/ArrayUtils"
@@ -47,6 +46,12 @@ import type {PromiseMapFn} from "../../common/utils/PromiseUtils"
 import {promiseMapCompat} from "../../common/utils/PromiseUtils"
 import type {BrowserData} from "../../../misc/ClientConstants"
 import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, TypeRef} from "../../common/utils/EntityUtils";
+import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./SearchIndexDb"
+import type {DbTransaction} from "./DbFacade"
+
+const ValueType = EC.ValueType
+const Cardinality = EC.Cardinality
+const AssociationType = EC.AssociationType
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 
@@ -91,7 +96,7 @@ export class SearchFacade {
 			}
 			if (searchTokens.length > 0) {
 				let isFirstWordSearch = searchTokens.length === 1
-				let before = getPerformanceTimestamp()
+				// let before = getPerformanceTimestamp()
 				let suggestionFacade = this._suggestionFacades.find(f => isSameTypeRef(f.type, restriction.type))
 				let searchPromise
 				if (minSuggestionCount > 0 && isFirstWordSearch && suggestionFacade) {

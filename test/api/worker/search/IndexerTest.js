@@ -26,6 +26,7 @@ import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
 import {GENERATED_MAX_ID, getElementId, TypeRef} from "../../../../src/api/common/utils/EntityUtils";
 import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/SearchIndexDb"
+import type {SomeEntity} from "../../../../src/api/common/EntityFunctions"
 
 const restClientMock: EntityRestClient = downcast({})
 
@@ -630,7 +631,7 @@ o.spec("Indexer test", () => {
 			indexerMock._initParams = {user}
 		})
 
-		function newUpdate<T>(typeRef: TypeRef<T>) {
+		function newUpdate<T: SomeEntity>(typeRef: TypeRef<T>) {
 			let u = createEntityUpdate()
 			u.application = typeRef.app
 			u.type = typeRef.type

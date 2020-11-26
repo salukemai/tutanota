@@ -8,7 +8,7 @@ import {
 	resolveSessionKey,
 	setNewOwnerEncSessionKey
 } from "../crypto/CryptoFacade"
-import type {HttpMethodEnum} from "../../common/EntityFunctions"
+import type {ElementEntity, HttpMethodEnum, ListElementEntity} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
@@ -40,7 +40,9 @@ export interface EntityRestInterface {
 	 * @param queryParams
 	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
 	 */
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<?T | T[] | Id>;
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params, extraHeaders?: Params
+	): Promise<?T | T[] | Id>;
 
 	/**
 	 * Must be called when entity events are received.
@@ -69,7 +71,9 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params, extraHeaders?: Params): Promise<any> {
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params, extraHeaders?: Params
+	): Promise<any> {
 		return resolveTypeReference(typeRef).then(model => {
 			let path = typeRefToPath(typeRef)
 			if (listId) {

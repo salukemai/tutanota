@@ -240,8 +240,8 @@ export class SearchListView {
 		return Promise.resolve()
 	}
 
-	_loadAndFilterInstances<T: ListElement>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult,
-	                                        startIndex: number): Promise<T[]> {
+	_loadAndFilterInstances<T: ListElementEntity>(type: TypeRef<T>, toLoad: IdTuple[], currentResult: SearchResult, startIndex: number
+	): Promise<T[]> {
 
 		const grouped = groupBy(toLoad, listIdPart)
 		return Promise.map(grouped, ([listId, ids]) => loadMultiple(type, listId, ids.map(elementIdPart)), {concurrency: 1})

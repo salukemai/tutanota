@@ -73,8 +73,8 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params,
-	                 extraHeaders?: Params
+	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	                                                    queryParameter: ?Params, extraHeaders?: Params
 	): Promise<any> {
 		return resolveTypeReference(typeRef).then(() => {
 			const startId = queryParameter && queryParameter["start"]

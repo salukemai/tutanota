@@ -45,23 +45,23 @@ export class EntityClient {
 		this._target = target
 	}
 
-	load<T>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params): Promise<T> {
+	load<T: SomeEntity>(typeRef: TypeRef<T>, id: Id | IdTuple, queryParams: ?Params, extraHeaders?: Params): Promise<T> {
 		return _loadEntity(typeRef, id, queryParams, this._target, extraHeaders)
 	}
 
-	setup<T>(listId: ?Id, instance: T): Promise<Id> {
+	setup<T: SomeEntity>(listId: ?Id, instance: T): Promise<Id> {
 		return _setupEntity(listId, instance, this._target)
 	}
 
-	update<T>(instance: T): Promise<void> {
+	update<T: SomeEntity>(instance: T): Promise<void> {
 		return _updateEntity(instance, this._target)
 	}
 
-	erase<T>(instance: T): Promise<void> {
+	erase<T: SomeEntity>(instance: T): Promise<void> {
 		return _eraseEntity(instance, this._target)
 	}
 
-	loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
+	loadRoot<T: SomeEntity>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 		return _loadRoot(typeRef, groupId, this._target)
 	}
 
@@ -69,18 +69,20 @@ export class EntityClient {
 		return _loadAll(typeRef, listId, start == null ? GENERATED_MIN_ID : start, this._target)
 	}
 
-	loadReverseRangeBetween<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id, rangeItemLimit: number = RANGE_ITEM_LIMIT): Promise<{elements: T[], loadedCompletely: boolean}> {
+	loadReverseRangeBetween<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, end: Id,
+	                                              rangeItemLimit: number = RANGE_ITEM_LIMIT
+	): Promise<{elements: T[], loadedCompletely: boolean}> {
 		return _loadReverseRangeBetween(typeRef, listId, start, end, this._target, rangeItemLimit)
 	}
 
-	loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		return _loadEntityRange(typeRef, listId, start, count, reverse, this._target)
 	}
 
 	/**
 	 * load multiple does not guarantee order or completeness of returned elements.
 	 */
-	loadMultipleEntities<T>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
+	loadMultipleEntities<T: SomeEntity>(typeRef: TypeRef<T>, listId: ?Id, elementIds: Id[]): Promise<T[]> {
 		return _loadMultipleEntities(typeRef, listId, elementIds, this._target)
 	}
 }

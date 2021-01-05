@@ -30,6 +30,7 @@ import type {CalendarGroupRoot} from "../api/entities/tutanota/CalendarGroupRoot
 import type {AlarmInfo} from "../api/entities/sys/AlarmInfo"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {ProgressMonitor} from "../api/common/utils/ProgressMonitor"
+import {PreconditionFailedError} from "../api/common/error/RestError"
 
 export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 	fileController.showFileChooser(true, ["ical", "ics", "ifb", "icalendar"])
@@ -70,6 +71,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 							              assignEventId(event, zone, calendarGroupRoot)
 							              return worker.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
+							                           .catch(PreconditionFailedError, e => console.log("ignoring create calendar event with duplicate uid"))
 							                           .delay(100)
 						              })
 					              })

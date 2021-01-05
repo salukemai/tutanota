@@ -3,7 +3,6 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {Dialog, DialogType} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
-import {update} from "../api/main/Entity"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {EmailSignatureType, FeatureType} from "../api/common/TutanotaConstants"
 import {neverNull} from "../api/common/utils/Utils"
@@ -13,10 +12,14 @@ import {HtmlEditor} from "../gui/base/HtmlEditor"
 import stream from "mithril/stream/stream.js"
 import type {TutanotaProperties} from "../api/entities/tutanota/TutanotaProperties"
 import {insertInlineImageB64ClickHandler} from "../mail/MailViewerUtils"
-import {PayloadTooLargeError} from "../api/common/error/RestError"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {PayloadTooLargeError} from "../api/common/error/RestError"
+import {locator} from "../api/main/MainLocator"
 
 assertMainOrNode()
+
+// signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
+const RECOMMENDED_SIGNATURE_SIZE_LIMIT = 15 * 1024
 
 export function show(props: TutanotaProperties) {
 	let currentCustomSignature = logins.getUserController().props.customEmailSignature
@@ -58,14 +61,12 @@ export function show(props: TutanotaProperties) {
 		const oldType = props.emailSignatureType
 		const oldCustomValue = props.customEmailSignature
 
-		if (newType === oldType && (newType !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM || newCustomValue === oldCustomValue)) {
-			return dialog.close()
-		} else {
+		const updateSignature = () => {
 			props.emailSignatureType = newType
 			if (newType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM) {
 				props.customEmailSignature = newCustomValue
 			}
-			const updatePromise = update(props)
+			const updatePromise = locator.entityClient.update(props)
 			return showProgressDialog("pleaseWait_msg", updatePromise)
 				.then(() => dialog.close())
 				.catch(PayloadTooLargeError, () => {
@@ -73,7 +74,34 @@ export function show(props: TutanotaProperties) {
 					props.customEmailSignature = oldCustomValue
 					return Dialog.error("requestTooLarge_msg")
 				})
+		}
 
+		if (newType === oldType && (newType !== EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM || newCustomValue === oldCustomValue)) {
+			return dialog.close()
+		} else {
+			if (newType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM
+				&& newCustomValue.length > RECOMMENDED_SIGNATURE_SIZE_LIMIT) {
+				const signatureSizeKb = Math.floor(newCustomValue.length / 1024)
+				const confirmLargeSignatureAttrs = {
+					title: () => lang.get("warning_title"),
+					child: {
+						view: () => {
+							return [
+								m("p", lang.get("largeSignature_msg", {"{1}": signatureSizeKb})),
+								m("p", lang.get("largeSignatureConfirmation_msg"))
+							]
+						}
+					},
+					okAction: (dialog) => {
+						dialog.close()
+						updateSignature()
+					},
+					allowOkWithReturn: true,
+				}
+				Dialog.showActionDialog(confirmLargeSignatureAttrs)
+			} else {
+				updateSignature()
+			}
 		}
 	}
 

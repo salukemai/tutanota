@@ -1247,3 +1247,7 @@ export type TranslationKeyType = "about_label"
 	| "yourMessage_label"
 	| "you_label"
 	| "emptyString_msg"
+	//TODO add in phrase
+	| "warning_title"
+	| "largeSignature_msg"
+	| "largeSignatureConfirmation_msg"

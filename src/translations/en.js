@@ -1259,6 +1259,9 @@ module.exports = {
 		"yourCalendars_label": "Your calendars",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"you_label": "You"
+		"you_label": "You",
+		"warning_title": "Warning",
+		"largeSignature_msg": "The signature you defined is over {1}kb in size. It will be appended to every email by default.",
+		"largeSignatureConfirmation_msg": "Do you want to use it anyway?"
 	}
 }

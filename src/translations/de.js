@@ -1139,7 +1139,6 @@ module.exports = {
 		"takeoverSuccess_msg": "Du kannst jetzt deine E-Mail-Adresse in dem angegebenen Account als E-Mail-Alias oder zusätzlicher Benutzer wiederverwenden.",
 		"takeOverUnusedAddress_msg": "Du kannst die E-Mail-Adresse deines gelöschten Accounts in einen anderen bezahlten Account übernehmen und dort weiterverwenden. Dafür gib bitte die E-Mail-Adresse des Administrators des Ziel-Accounts an. Bitte beachte Sie auch: Wenn du einen zweiten Faktor für die Authentifizierung eingerichtet hattest, musst du jetzt stattdessen deinen Wiederherstellungs-Code angeben, da die Zwei-Faktor-Authentifizierung für einen gelöschten Account nicht möglich ist.",
 		"targetAddress_label": "Ziel-Adresse des Accounts",
-		"technicalSender_msg": "Der technische Absender ist: {sender}",
 		"templateHelp_msg": "In diesem Formular kann die Benachrichtigungs-E-Mail angepasst werden, mit der der Link zur verschlüsselten Mailbox versendet wird. Die Nachricht muss den Platzhalter \"{link}\" enthalten, welcher mit dem tatsächlichen Link ersetzt wird. Zusätzlich kann im Betreff und in der Nachricht der Platzhalter \"{sender}\" verwenden werden, welcher durch den Namen des Absenders ersetzt wird.",
 		"templateLanguageExists_msg": "Eine Vorlage for die ausgewählte Sprache existiert bereits.",
 		"templateMustContain_msg": "Die Nachricht muss den Platzhalter {value} enthalten",
@@ -1271,6 +1270,8 @@ module.exports = {
 		"blockExternalContent_label": "Block",
 		"alwaysAllowExternalContent_label": "Trust sender",
 		"disallowExternalContent_label": "Block external content",
-		"ignore_label": "Ignore"
+		"ignore_label": "Ignore",
+		"mailAuthMissingWithTechnicalSender_label": "Wir konnten nicht prüfen, ob der Absender und der Inhalt dieser Nachricht gültig sind. Der technische Absender ist: {sender}",
+
 	}
 }

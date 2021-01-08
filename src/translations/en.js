@@ -1135,7 +1135,6 @@ module.exports = {
 		"takeoverSuccess_msg": "You may now re-use your old address in the specified account as email alias or additional user.",
 		"takeOverUnusedAddress_msg": "You may take over the email address of your deleted account into another paid account and re-use it there. In order to do so please specify the target paid account admin email address. Please note: In case you had configured a second factor for authentication, please provide your recovery code instead because 2FA can not be used for a deleted account.",
 		"targetAddress_label": "Target account address",
-		"technicalSender_msg": "The technical sender is: {sender}",
 		"templateHelp_msg": "In the form below you can configure a custom template for the notification emails containing the link to the encrypted mailbox. The template body must contain a \"{link}\" placeholder which will be replaced with the actual link to the encrypted email. You can also include a \"{sender}\" placeholder in the mail body or in the subject which will be replaced with the sender name.",
 		"templateLanguageExists_msg": "Template for the selected language already exists.",
 		"templateMustContain_msg": "Template must contain placeholder {value}",
@@ -1260,12 +1259,11 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"you_label": "You",
-		"invalidRegexSyntax_msg": "Invalid regex syntax",
-		"requestTooLarge_msg": "Your request was too large for the server",
-		"contentAllowed_msg": "External images are being shown. Do you want to always trust external images from this sender?",
+		"contentAllowed_msg": "Always trust external images from {sender}?",
 		"allowExternalContent_label": "Show",
 		"blockExternalContent_label": "Block",
 		"disallowExternalContent_label": "Block external content",
-		"ignore_label": "Ignore"
+		"ignore_label": "Ignore",
+		"mailAuthMissingWithTechnicalSender_msg": "We could not prove that the content or sender of this message is valid. The technical sender is: {sender}."
 	}
 }

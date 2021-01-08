@@ -205,6 +205,7 @@ styles.registerStyle('main', () => {
 		'.mr-l': {'margin-right': px(size.hpad_large)},
 
 		// paddings
+		'.p0': {padding: '0'},
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
 		'.pt': {'padding-top': px(size.vpad)},
 		'.pt-0': {'padding-top': 0},
@@ -282,6 +283,7 @@ styles.registerStyle('main', () => {
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
 
+		'.border': {'border': `1px solid ${theme.content_border}`},
 		'.border-top': {'border-top': `1px solid ${theme.content_border}`},
 
 		// colors

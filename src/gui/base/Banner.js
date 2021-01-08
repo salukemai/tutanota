@@ -74,17 +74,30 @@ export class Banner implements MComponent<BannerAttrs> {
 			]),
 			m(".flex-grow"),
 			attrs.helpLink
-				? m("a", {
-					style: {"align-self": "end", background: "transparent"},
-					href: lang.getInfoLink(attrs.helpLink),
-					target: "_blank",
-				}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: colors.button, display: "block"}}))
+				? m(BannerHelpLink, {link: attrs.helpLink, color: colors.button, align: "end"})
 				: null
 		]);
 	}
 }
 
-function getColors(type: BannerTypeEnum): Colors {
+export type BannerHelpLinkAttrs = {
+	link: InfoLink,
+	color: string,
+	align: string // passed to css "align-self"
+}
+
+export class BannerHelpLink implements MComponent<BannerHelpLinkAttrs> {
+	view(vnode: Vnode<BannerHelpLinkAttrs>): Children {
+		const a = vnode.attrs
+		return m("a.ml-s.bg-transparent", {
+			style: {"align-self": a.align},
+			href: lang.getInfoLink(a.link),
+			target: "_blank",
+		}, m(Icon, {icon: BootIcons.Help, large: true, style: {fill: a.color, display: "block"}}))
+	}
+}
+
+function getColors(type: BannerTypeEnum): BannerColors {
 	if (type === BannerType.Warning) {
 		return {bg: "#ca0606", fg: "white", button: "white", border: "none"}
 	} else {
@@ -92,14 +105,14 @@ function getColors(type: BannerTypeEnum): Colors {
 	}
 }
 
-type Colors = {
+export type BannerColors = {
 	bg: string,
 	fg: string,
 	border: string,
 	button: string,
 }
 
-type BannerButtonAttrs = {
+export type BannerButtonAttrs = {
 	borderColor: string,
 	color: string,
 	click: () => mixed,

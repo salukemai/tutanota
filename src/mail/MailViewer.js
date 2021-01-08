@@ -127,6 +127,8 @@ import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {EntityClient} from "../api/common/EntityClient"
 import {MailModel} from "./MailModel"
+import type {InfoBannerAttrs} from "../gui/base/InfoBanner"
+import {InfoBanner} from "../gui/base/InfoBanner"
 
 assertMainOrNode()
 
@@ -319,20 +321,20 @@ export class MailViewer {
 									icon: Icons.Warning,
 									helpLink: "mailAuth_link",
 									buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
-								})
-								: !this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL
-									? m(Banner, {
-										type: BannerType.Info,
-										title: "mailAuthMissing_label",
-										message: () => mail.differentEnvelopeSender ? lang.get("technicalSender_msg", {"{sender}": mail.differentEnvelopeSender}) : "",
-										icon: Icons.Warning,
-										helpLink: "mailAuth_link",
-										buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
-									})
-									: null,
+								}) : null,
 							this._renderEventBanner(),
-							this._renderExternalContentBanner(),
 							this._renderAttachments(),
+							!this._warningDismissed && mail.authStatus === MailAuthenticationStatus.SOFT_FAIL
+								? m(InfoBanner, {
+									message: () => mail.differentEnvelopeSender
+										? lang.get("mailAuthMissingWithTechnicalSender_msg", {"{sender}": mail.differentEnvelopeSender})
+										: lang.get("mailAuthMissing_label"),
+									icon: Icons.Warning,
+									helpLink: "mailAuth_link",
+									buttons: [{text: "close_alt", click: () => this._warningDismissed = true}]
+								})
+								: null,
+							this._renderExternalContentBanner(),
 							m("hr.hr.mb.mt-s"),
 						]),
 
@@ -682,7 +684,7 @@ export class MailViewer {
 							type: ButtonType.Dropdown
 						})
 					}
-					if (this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow) {
+					if (this._isShowingExternalContent()) {
 						moreButtons.push({
 							label: "disallowExternalContent_label",
 							click: () => {
@@ -699,6 +701,11 @@ export class MailViewer {
 		}
 
 		return m(".action-bar.flex-end.items-center.mr-negative-s", actions)
+	}
+
+	_isShowingExternalContent(): boolean {
+		return this._contentBlockingStatus === ContentBlockingStatus.Show
+			|| this._contentBlockingStatus === ContentBlockingStatus.AlwaysShow
 	}
 
 	_reportMail() {
@@ -944,18 +951,17 @@ export class MailViewer {
 			])
 		} else {
 			const spoilerLimit = this._attachmentsSpoilerLimit()
-			return m(".flex.ml-negative-bubble.flex-wrap",
-				[
-					this._attachmentButtons.length > spoilerLimit
-						? [
-							this._attachmentButtons.slice(0, spoilerLimit).map(m),
-							m(ExpanderButtonN, {
-								label: "showAll_action",
-								expanded: this._filesExpanded,
-								style: {
-									margin: "0 6px",
-									paddingTop: "0"
-								}
+			return m(".flex.ml-negative-bubble.flex-wrap", [
+				this._attachmentButtons.length > spoilerLimit
+					? [
+						this._attachmentButtons.slice(0, spoilerLimit).map(m),
+						m(ExpanderButtonN, {
+							label: "showAll_action",
+							expanded: this._filesExpanded,
+							style: {
+								margin: "0 6px",
+								paddingTop: "0"
+							}
 							}),
 							m(ExpanderPanelN, {
 								expanded: this._filesExpanded
@@ -1557,18 +1563,18 @@ export class MailViewer {
 
 		const status = this._contentBlockingStatus
 
-		let title, okLabel, okAction, notOkLabel
+		let message, okLabel, okAction, notOkLabel
 
 
 		if (status === ContentBlockingStatus.Block) {
-			title = "contentBlocked_msg"
+			message = "contentBlocked_msg"
 			okLabel = "allowExternalContent_label"
 			notOkLabel = "ignore_label"
 			okAction = () => {
 				this._setContentBlockingStatus(ContentBlockingStatus.Show)
 			}
 		} else if (status === ContentBlockingStatus.Show) {
-			title = "contentAllowed_msg"
+			message = () => lang.get("contentAllowed_msg", {"{sender}": this.mail.sender.address})
 			okLabel = "yes_label"
 			notOkLabel = "no_label"
 			okAction = () => {
@@ -1578,10 +1584,8 @@ export class MailViewer {
 			return null
 		}
 
-		const bannerAttrs: BannerAttrs = {
-			type: BannerType.Info,
-			title,
-			message: "emptyString_msg",
+		const bannerAttrs: InfoBannerAttrs = {
+			message,
 			icon: Icons.Picture,
 			helpLink: "loadImages_link",
 			buttons: [
@@ -1595,7 +1599,7 @@ export class MailViewer {
 				}
 			]
 		}
-		return m(Banner, bannerAttrs)
+		return m(InfoBanner, bannerAttrs)
 	}
 
 	_renderExternalContentButtons(mail: Mail, colors: ButtonColorEnum): Children {

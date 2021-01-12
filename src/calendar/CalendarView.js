@@ -80,13 +80,12 @@ import {loadGroupMembers} from "./CalendarSharingUtils"
 import {size} from "../gui/size"
 import {FolderColumnView} from "../gui/base/FolderColumnView"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {premiumSubscriptionActive} from "../subscription/PriceUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CalendarEventPopup} from "./CalendarEventPopup"
 import {NoopProgressMonitor} from "../api/common/utils/ProgressMonitor"
-import {getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils";
+import {premiumSubscriptionActive, showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 import {exportCalendar, showCalendarImportDialog} from "./CalendarImporterDialog"
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils"
+import {getListId, isSameId, listIdPart} from "../api/common/utils/EntityUtils"
 
 export const LIMIT_PAST_EVENTS_YEARS = 100
 

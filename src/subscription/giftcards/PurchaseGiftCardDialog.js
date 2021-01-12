@@ -5,7 +5,6 @@ import stream from "mithril/stream/stream.js"
 import {Dialog} from "../../gui/base/Dialog"
 import {serviceRequest} from "../../api/main/Entity"
 import {logins} from "../../api/main/LoginController"
-import type {CustomerInfo} from "../../api/entities/sys/CustomerInfo"
 import type {AccountingInfo} from "../../api/entities/sys/AccountingInfo"
 import {worker} from "../../api/main/WorkerClient"
 import {showProgressDialog} from "../../gui/base/ProgressDialog"
@@ -21,17 +20,15 @@ import {DropDownSelector} from "../../gui/base/DropDownSelector"
 import {createCountryDropdown} from "../../gui/base/GuiUtils"
 import {BuyOptionBox} from "../BuyOptionBox"
 import {ButtonN, ButtonType} from "../../gui/base/ButtonN"
-import {getPreconditionFailedPaymentMsg, getUpgradePrice, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
-import {
-	renderAcceptGiftCardTermsCheckbox,
-	showGiftCardToShare
-} from "./GiftCardUtils"
+import type {SubscriptionData, SubscriptionPlanPrices} from "../SubscriptionUtils"
+import {getPreconditionFailedPaymentMsg, SubscriptionType, UpgradePriceType} from "../SubscriptionUtils"
+import {renderAcceptGiftCardTermsCheckbox, showGiftCardToShare} from "./GiftCardUtils"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
 import {showUserError} from "../../misc/ErrorHandlerImpl"
 import {UserError} from "../../api/common/error/UserError"
 import {Keys, PaymentMethodType} from "../../api/common/TutanotaConstants"
 import {lang} from "../../misc/LanguageViewModel"
-import {BadGatewayError, NotAuthorizedError, PreconditionFailedError} from "../../api/common/error/RestError"
+import {BadGatewayError, PreconditionFailedError} from "../../api/common/error/RestError"
 import {loadUpgradePrices} from "../UpgradeSubscriptionWizard"
 import {Icons} from "../../gui/base/icons/Icons"
 import {Icon} from "../../gui/base/Icon"
@@ -39,7 +36,7 @@ import {GiftCardMessageEditorField} from "./GiftCardMessageEditorField"
 import {client} from "../../misc/ClientDetector"
 import {noOp} from "../../api/common/utils/Utils"
 import {isIOSApp} from "../../api/Env"
-import {formatPrice} from "../PriceUtils";
+import {formatPrice, getSubscriptionPrice} from "../PriceUtils";
 
 export type GiftCardPurchaseViewAttrs = {
 	purchaseLimit: number,
@@ -81,37 +78,37 @@ class GiftCardPurchaseView implements MComponent<GiftCardPurchaseViewAttrs> {
 		return [
 			m(".flex.center-horizontally.wrap",
 				a.availablePackages.map((option, index) => {
-					const value = parseFloat(option.value)
-					const withSubscriptionAmount = value - a.premiumPrice
-					return m(BuyOptionBox, {
-						heading: m(".flex-center",
-							Array(Math.pow(2, index)).fill(m(Icon, {icon: Icons.Gift, large: true}))
-						),
-						actionButton: () => {
-							return {
-								label: "pricing.select_action",
-								click: () => {
-									this.selectedPackage(index)
-								},
-								type: ButtonType.Login,
-							}
-						},
-						price: formatPrice(parseFloat(value), true),
-						originalPrice: formatPrice(parseFloat(value), true),
-						helpLabel: () => lang.get(withSubscriptionAmount === 0
-							? "giftCardOptionTextA_msg"
-							: "giftCardOptionTextB_msg",
-							{
-								"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
-								"{fullCredit}": formatPrice(value, true)
-							}),
-						features: () => [],
-						width: 230,
-						height: 250,
-						paymentInterval: null,
-						highlighted: this.selectedPackage() === index,
-						showReferenceDiscount: false,
-					})
+						const value = parseFloat(option.value)
+						const withSubscriptionAmount = value - a.premiumPrice
+						return m(BuyOptionBox, {
+							heading: m(".flex-center",
+								Array(Math.pow(2, index)).fill(m(Icon, {icon: Icons.Gift, large: true}))
+							),
+							actionButton: () => {
+								return {
+									label: "pricing.select_action",
+									click: () => {
+										this.selectedPackage(index)
+									},
+									type: ButtonType.Login,
+								}
+							},
+							price: formatPrice(parseFloat(value), true),
+							originalPrice: formatPrice(parseFloat(value), true),
+							helpLabel: () => lang.get(withSubscriptionAmount === 0
+								? "giftCardOptionTextA_msg"
+								: "giftCardOptionTextB_msg",
+								{
+									"{remainingCredit}": formatPrice(withSubscriptionAmount, true),
+									"{fullCredit}": formatPrice(value, true)
+								}),
+							features: () => [],
+							width: 230,
+							height: 250,
+							paymentInterval: null,
+							highlighted: this.selectedPackage() === index,
+							showReferenceDiscount: false,
+						})
 					}
 				)),
 			m(".flex-center", m(GiftCardMessageEditorField, {message: this.message})),
@@ -220,14 +217,20 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 				      }
 
 				      return logins.getUserController().loadAccountingInfo().then((accountingInfo: AccountingInfo) => {
-					      const priceData = {
+
+					      const priceData: SubscriptionPlanPrices = {
+						      Premium: prices.premiumPrices,
+						      PremiumBusiness: prices.premiumBusinessPrices,
+						      Teams: prices.teamsPrices,
+						      TeamsBusiness: prices.teamsBusinessPrices,
+						      Pro: prices.proPrices
+					      }
+					      const subscriptionData: SubscriptionData = {
 						      options: {
 							      businessUse: () => false,
 							      paymentInterval: () => 12
 						      },
-						      premiumPrices: prices.premiumPrices,
-						      teamsPrices: prices.teamsPrices,
-						      proPrices: prices.proPrices
+						      planPrices: priceData
 					      }
 					      let dialog
 					      const attrs: GiftCardPurchaseViewAttrs = {
@@ -240,7 +243,7 @@ export function showPurchaseGiftCardDialog(): Promise<void> {
 							      ? getByAbbreviation(accountingInfo.invoiceCountry)
 							      : null,
 						      outerDialog: () => dialog,
-						      premiumPrice: getUpgradePrice(priceData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
+						      premiumPrice: getSubscriptionPrice(subscriptionData, SubscriptionType.Premium, UpgradePriceType.PlanActualPrice)
 					      };
 
 					      const headerBarAttrs: DialogHeaderBarAttrs = {

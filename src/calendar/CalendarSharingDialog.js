@@ -36,13 +36,14 @@ import {locator} from "../api/main/MainLocator"
 import type {GroupDetails, GroupMemberInfo} from "./CalendarSharingUtils"
 import {loadGroupInfoForMember, loadGroupMembers, sendShareNotificationEmail} from "./CalendarSharingUtils"
 import {TextFieldN} from "../gui/base/TextFieldN"
-import {premiumSubscriptionActive} from "../subscription/PriceUtils"
+
 import type {GroupInfo} from "../api/entities/sys/GroupInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import type {MailAddress} from "../api/entities/tutanota/MailAddress"
 import type {RecipientInfo} from "../api/common/RecipientInfo"
-import {showSharingBuyDialog} from "../subscription/SubscriptionUtils"
-import {getElementId, isSameId} from "../api/common/utils/EntityUtils";
+import {showSharingBuyDialog} from "../subscription/BuyDialog"
+import {premiumSubscriptionActive} from "../subscription/SubscriptionDialogUtils"
+import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 
 type CalendarSharingDialogAttrs = {
 	groupDetails: GroupDetails,

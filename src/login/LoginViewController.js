@@ -46,7 +46,7 @@ import {showEditOutOfOfficeNotificationDialog} from "../settings/EditOutOfOffice
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import {ButtonType} from "../gui/base/ButtonN"
 import {isNotificationCurrentlyActive, loadOutOfOfficeNotification} from "../settings/OutOfOfficeNotificationUtils"
-import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionUtils"
+import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionDialogUtils";
 
 assertMainOrNode()
 

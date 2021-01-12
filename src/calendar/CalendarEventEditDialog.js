@@ -14,6 +14,7 @@ import type {CalendarEvent} from "../api/entities/tutanota/CalendarEvent"
 import {downcast, memoized, noOp} from "../api/common/utils/Utils"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
+import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
 import {AlarmInterval, CalendarAttendeeStatus, EndType, Keys, RepeatPeriod} from "../api/common/TutanotaConstants"
 import {findAndRemove, numberRange, remove} from "../api/common/utils/ArrayUtils"
 import {getCalendarName, getStartOfTheWeekOffsetForUser} from "./CalendarUtils"
@@ -36,15 +37,15 @@ import {CalendarEventViewModel, createCalendarEventViewModel} from "./CalendarEv
 import type {RecipientInfo} from "../api/common/RecipientInfo"
 import {RecipientInfoType} from "../api/common/RecipientInfo"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
-import {animations, height, opacity} from "../gui/animation/Animations"
 import {UserError} from "../api/common/error/UserError"
 import type {Mail} from "../api/entities/tutanota/Mail"
 import {theme} from "../gui/theme"
 import {showProgressDialog} from "../gui/base/ProgressDialog"
-import type {CalendarAttendeeStatusEnum} from "../api/common/TutanotaConstants"
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
+import {logins} from "../api/main/LoginController"
+import {showBusinessBuyDialog} from "../subscription/BuyDialog"
 import type {ContactModel} from "../contacts/ContactModel"
 import {locator} from "../api/main/MainLocator"
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
 
 export const iconForAttendeeStatus: {[CalendarAttendeeStatusEnum]: AllIconsEnum} = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -505,8 +506,11 @@ function makeBubbleTextField(viewModel: CalendarEventViewModel, contactModel: Co
 			const bubble = new Bubble(recipientInfo, buttonAttrs, mailAddress)
 			// remove bubble after it was created - we don't need it for calendar invites because the attendees are shown in a seperate list.
 			Promise.resolve().then(() => {
-				if (viewModel.shouldShowInviteUnavailble()) {
-					showNotAvailableForFreeDialog(true)
+				const notAvailable = viewModel.shouldShowInviteNotAvailable()
+				if (notAvailable && !logins.getUserController().isPremiumAccount()) {
+					showNotAvailableForFreeDialog(false)
+				} else if (notAvailable) {
+					showBusinessBuyDialog(true).then(() => viewModel.updateBusinessFeature())
 				} else {
 					viewModel.addGuest(bubble.entity.mailAddress, bubble.entity.contact)
 				}
@@ -593,8 +597,11 @@ function renderGuest(guest: Guest, index: number, viewModel: CalendarEventViewMo
 					class: "",
 					selectionChangedHandler: (value) => {
 						if (value == null) return
-						if (viewModel.shouldShowInviteUnavailble()) {
-							showNotAvailableForFreeDialog(true)
+						const notAvailable = viewModel.shouldShowInviteNotAvailable()
+						if (notAvailable && !logins.getUserController().isPremiumAccount()) {
+							showNotAvailableForFreeDialog(false)
+						} else if (notAvailable) {
+							showBusinessBuyDialog(true).then(() => viewModel.updateBusinessFeature())
 						} else {
 							viewModel.selectGoing(value)
 						}

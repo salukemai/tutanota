@@ -52,7 +52,6 @@ import type {RecipientInfo, RecipientInfoTypeEnum} from "../api/common/Recipient
 import {isExternal, RecipientInfoType} from "../api/common/RecipientInfo"
 import type {Contact} from "../api/entities/tutanota/Contact"
 import {defaultSendMailModel, SendMailModel} from "../mail/SendMailModel"
-import {firstThrow} from "../api/common/utils/ArrayUtils"
 import {addMapEntry, deleteMapEntry} from "../api/common/utils/MapUtils"
 import type {RepeatRule} from "../api/entities/sys/RepeatRule"
 import {UserError} from "../api/common/error/UserError"
@@ -60,7 +59,11 @@ import type {Mail} from "../api/entities/tutanota/Mail"
 import {logins} from "../api/main/LoginController"
 import {locator} from "../api/main/MainLocator"
 import {ProgrammingError} from "../api/common/error/ProgrammingError"
-import {cleanMatch} from "../api/common/utils/StringUtils"
+import type {Booking} from "../api/entities/sys/Booking"
+import {BookingTypeRef} from "../api/entities/sys/Booking"
+import {isBusinessActive} from "../subscription/SubscriptionUtils"
+import {EntityClient} from "../api/common/EntityClient"
+import {GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
 
 const TIMESTAMP_ZERO_YEAR = 1970
 
@@ -127,6 +130,7 @@ export class CalendarEventViewModel {
 	+_updateModel: SendMailModel;
 	+_cancelModel: SendMailModel;
 	+_ownMailAddresses: Array<string>;
+	+_entityClient: EntityClient;
 	// We want to observe changes to it. To not mutate accidentally without stream update we keep it immutable.
 	+_guestStatuses: Stream<$ReadOnlyMap<string, CalendarAttendeeStatusEnum>>;
 	+_sendModelFactory: () => SendMailModel;
@@ -135,11 +139,13 @@ export class CalendarEventViewModel {
 	_responseTo: ?Mail
 	+sendingOutUpdate: Stream<boolean>
 	_processing: boolean;
+	_hasBusinessFeature: Stream<boolean>
 
 	constructor(
 		userController: IUserController,
 		distributor: CalendarUpdateDistributor,
 		calendarModel: CalendarModel,
+		entityClient: EntityClient,
 		mailboxDetail: MailboxDetail,
 		sendMailModelFactory: SendMailModelFactory,
 		date: Date,
@@ -151,6 +157,7 @@ export class CalendarEventViewModel {
 	) {
 		this._distributor = distributor
 		this._calendarModel = calendarModel
+		this._entityClient = entityClient
 		this._responseTo = responseTo
 		this._inviteModel = sendMailModelFactory(mailboxDetail, "invite")
 		this._updateModel = sendMailModelFactory(mailboxDetail, "update")
@@ -161,6 +168,7 @@ export class CalendarEventViewModel {
 		this._ownAttendee = stream(null)
 		this.sendingOutUpdate = stream(false)
 		this._processing = false
+		this._hasBusinessFeature = stream(false)
 
 		const existingOrganizer = existingEvent && existingEvent.organizer
 		this.organizer = existingOrganizer
@@ -200,7 +208,17 @@ export class CalendarEventViewModel {
 			this.startDate = getStartOfDayWithZone(date, this._zone)
 			this.endDate = getStartOfDayWithZone(date, this._zone)
 		}
+		this.updateBusinessFeature()
+	}
 
+	_loadLastBooking(): Promise<?Booking> {
+		return this._userController.loadCustomerInfo()
+		           .then(customerInfo => {
+			           return this._entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+			                      .then(bookings => {
+				                      return bookings.length === 1 ? bookings[0] : null
+			                      })
+		           })
 	}
 
 	_applyValuesFromExistingEvent(existingEvent: CalendarEvent, calendars: Map<Id, CalendarInfo>): void {
@@ -309,6 +327,15 @@ export class CalendarEventViewModel {
 		return stream(newStatuses)
 	}
 
+	updateBusinessFeature(): Promise<void> {
+		return this._userController.loadCustomerInfo()
+		           .then(customerInfo => this._entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true))
+		           .then(bookings => bookings.length === 1 ? bookings[0] : null)
+		           .then(lastBooking => {
+			           this._hasBusinessFeature(isBusinessActive(lastBooking))
+		           }).return()
+	}
+
 	_initAttendees(): Stream<Array<Guest>> {
 		return stream.merge(
 			[this._inviteModel.onMailChanged, this._updateModel.onMailChanged, this._guestStatuses, this._ownAttendee]
@@ -375,10 +402,10 @@ export class CalendarEventViewModel {
 		// 3: if the attendee is yourself and you already exist as an attendee, remove yourself
 		// 4: add the attendee
 		// 5: add organizer if you are not already in the list
-		if (this.shouldShowInviteUnavailble()) {
+
+		if (this.shouldShowInviteNotAvailable()) {
 			throw new ProgrammingError("Not available for free account")
 		}
-
 		// We don't add a guest if they are already an attendee
 		// even though the SendMailModel handles deduplication, we need to check here because recipients shouldn't be duplicated across the 3 models either
 		if (this.attendees().some((a) => a.address.address === mailAddress)) {
@@ -418,7 +445,6 @@ export class CalendarEventViewModel {
 		if (this.attendees().length === 1 && this.findOwnAttendee() == null) {
 			this.selectGoing(CalendarAttendeeStatus.ACCEPTED)
 		}
-
 	}
 
 	getGuestPassword(guest: Guest): string {
@@ -549,8 +575,15 @@ export class CalendarEventViewModel {
 		return selectedCalendar != null && !selectedCalendar.shared && this._eventType !== EventType.INVITE
 	}
 
-	shouldShowInviteUnavailble(): boolean {
-		return this._userController.user.accountType === AccountType.FREE
+
+	shouldShowInviteNotAvailable(): boolean {
+		if (this._userController.user.accountType === AccountType.FREE) {
+			return true
+		}
+		if (this._userController.user.accountType === AccountType.EXTERNAL) {
+			return false
+		}
+		return !this._hasBusinessFeature()
 	}
 
 	removeAttendee(guest: Guest) {
@@ -781,19 +814,17 @@ export class CalendarEventViewModel {
 	}
 
 	selectGoing(going: CalendarAttendeeStatusEnum) {
-		if (this.shouldShowInviteUnavailble()) {
-			throw new ProgrammingError("Cannot select attendance")
-		} else {
-			if (this.canModifyOwnAttendance()) {
-				const ownAttendee = this._ownAttendee()
-				if (ownAttendee) {
-					this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
-				} else if (this._eventType === EventType.OWN) {
-					// use the default sender as the organizer
-					const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
-					this._ownAttendee(newOwnAttendee)
-					this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
-				}
+		if (this.shouldShowInviteNotAvailable()) {
+			throw new ProgrammingError("Not available for free account")
+		} else if (this.canModifyOwnAttendance()) {
+			const ownAttendee = this._ownAttendee()
+			if (ownAttendee) {
+				this._guestStatuses(addMapEntry(this._guestStatuses(), ownAttendee.address, going))
+			} else if (this._eventType === EventType.OWN) {
+				// use the default sender as the organizer
+				const newOwnAttendee = createEncryptedMailAddress({address: this._inviteModel.getSender()})
+				this._ownAttendee(newOwnAttendee)
+				this._guestStatuses(addMapEntry(this._guestStatuses(), newOwnAttendee.address, going))
 			}
 		}
 	}
@@ -999,6 +1030,7 @@ export function createCalendarEventViewModel(date: Date, calendars: Map<Id, Cale
 		logins.getUserController(),
 		calendarUpdateDistributor,
 		locator.calendarModel,
+		locator.entityClient,
 		mailboxDetail,
 		(mailboxDetail) => defaultSendMailModel(mailboxDetail),
 		date,

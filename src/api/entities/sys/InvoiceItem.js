@@ -72,7 +72,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "67"
+	"version": "68"
 }
 
 export function createInvoiceItem(values?: $Shape<$Exact<InvoiceItem>>): InvoiceItem {

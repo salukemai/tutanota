@@ -15,8 +15,8 @@ import {worker} from "../api/main/WorkerClient"
 import {TextField, Type} from "../gui/base/TextField"
 import m from "mithril"
 import {lang} from "./LanguageViewModel"
-import {assertMainOrNode, Mode} from "../api/Env"
 import {AccountType, ConversationType, MailMethod} from "../api/common/TutanotaConstants"
+import {assertMainOrNode, Mode} from "../api/Env"
 import {errorToString, neverNull} from "../api/common/utils/Utils"
 import {createRecipientInfo} from "../mail/MailUtils"
 import {logins} from "../api/main/LoginController"
@@ -37,7 +37,7 @@ import {QuotaExceededError} from "../api/common/error/QuotaExceededError"
 import {copyToClipboard} from "./ClipboardUtils"
 import {px} from "../gui/size"
 import {UserError} from "../api/common/error/UserError"
-import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionUtils"
+import {showMoreStorageNeededOrderDialog} from "../subscription/SubscriptionDialogUtils";
 
 assertMainOrNode()
 

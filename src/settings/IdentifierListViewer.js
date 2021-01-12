@@ -27,7 +27,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {User} from "../api/entities/sys/User"
 import type {PushIdentifier} from "../api/entities/sys/PushIdentifier"
 import type {EntityUpdateData} from "../api/main/EventController"
-import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionUtils";
+import {showNotAvailableForFreeDialog} from "../subscription/SubscriptionDialogUtils"
 
 type IdentifierRowAttrs = {|
 	name: string,

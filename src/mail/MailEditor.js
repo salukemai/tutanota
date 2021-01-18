@@ -13,7 +13,6 @@ import {
 	appendEmailSignature,
 	conversationTypeString,
 	createInlineImage,
-	getDefaultSignature,
 	getEnabledMailAddressesWithUser,
 	getSupportMailSignature,
 	parseMailtoUrl,
@@ -337,7 +336,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 		return m("#mail-editor.full-height.text.touch-callout", {
 			onremove: vnode => {
 				model.dispose()
-				knowledgebase.close()
+				locator.knowledgebase.close()
 				this.objectUrls.forEach((url) => URL.revokeObjectURL(url))
 			},
 			onclick: (e) => {
@@ -406,9 +405,9 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 	}
 
 	openKnowledgeBase() {
-		knowledgebase.init().then(() => {
-			knowledgebase.sortEntriesByMatchingKeywords(this.editor.getValue())
-			knowledgebase.setActive()
+		locator.knowledgebase.init().then(() => {
+			locator.knowledgebase.sortEntriesByMatchingKeywords(this.editor.getValue())
+			locator.knowledgebase.setActive()
 			m.redraw()
 		})
 	}
@@ -504,14 +503,15 @@ function createMailEditorDialog(model: SendMailModel, blockExternalContent: bool
 
 	const knowledgebaseComponent = {
 		view: () => {
-			return knowledgebase.getStatus()
+			return locator.knowledgebase.getStatus()
 				? m(KnowledgeBaseView, {
 					onSubmit: (text) => {
 						editorDeferred.promise.then((editor) => {
 							editor.insertHTML(text)
 							editor.focus()
 						})
-					}
+					},
+					model: locator.knowledgebase
 				})
 				: null
 		}
@@ -597,8 +597,7 @@ function openTemplateFeature(editor: ?Editor) {
 	} else {
 		rect = new DomRectReadOnlyPolyfilled(editorRect.left, cursorRect.bottom, popUpWidth, cursorRect.height);
 	}
-	templateModel.init().then(new TemplatePopup(rect, onsubmit, highlightedText).show())
-	//new TemplatePopup(rect, onsubmit, highlightedText).show()
+	locator.templateModel.init().then(new TemplatePopup(locator.templateModel, rect, onsubmit, highlightedText).show())
 }
 
 

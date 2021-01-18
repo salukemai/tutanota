@@ -2,21 +2,20 @@
 
 import {create, TypeRef} from "../../common/EntityFunctions"
 
-import type {EmailTemplateContent} from "./EmailTemplateContent"
 
-export const EmailTemplateTypeRef: TypeRef<EmailTemplate> = new TypeRef("tutanota", "EmailTemplate")
+export const TemplateGroupRootTypeRef: TypeRef<TemplateGroupRoot> = new TypeRef("tutanota", "TemplateGroupRoot")
 export const _TypeModel: TypeModel = {
-	"name": "EmailTemplate",
+	"name": "TemplateGroupRoot",
 	"since": 45,
-	"type": "LIST_ELEMENT_TYPE",
-	"id": 1157,
-	"rootId": "CHR1dGFub3RhAASF",
+	"type": "ELEMENT_TYPE",
+	"id": 1180,
+	"rootId": "CHR1dGFub3RhAASc",
 	"versioned": false,
 	"encrypted": true,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1161,
+			"id": 1184,
 			"since": 45,
 			"type": "Number",
 			"cardinality": "One",
@@ -25,7 +24,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_id": {
 			"name": "_id",
-			"id": 1159,
+			"id": 1182,
 			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
@@ -34,7 +33,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerEncSessionKey": {
 			"name": "_ownerEncSessionKey",
-			"id": 1163,
+			"id": 1186,
 			"since": 45,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
@@ -43,7 +42,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"_ownerGroup": {
 			"name": "_ownerGroup",
-			"id": 1162,
+			"id": 1185,
 			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "ZeroOrOne",
@@ -52,62 +51,54 @@ export const _TypeModel: TypeModel = {
 		},
 		"_permissions": {
 			"name": "_permissions",
-			"id": 1160,
+			"id": 1183,
 			"since": 45,
 			"type": "GeneratedId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
-		},
-		"tag": {
-			"name": "tag",
-			"id": 1165,
-			"since": 45,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
-		},
-		"title": {
-			"name": "title",
-			"id": 1164,
-			"since": 45,
-			"type": "String",
-			"cardinality": "One",
-			"final": false,
-			"encrypted": true
 		}
 	},
 	"associations": {
-		"contents": {
-			"name": "contents",
-			"id": 1166,
+		"knowledgeBase": {
+			"name": "knowledgeBase",
+			"id": 1188,
 			"since": 45,
-			"type": "AGGREGATION",
-			"cardinality": "Any",
-			"refType": "EmailTemplateContent",
-			"final": false
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "KnowledgeBaseEntry",
+			"final": true,
+			"external": false
+		},
+		"templates": {
+			"name": "templates",
+			"id": 1187,
+			"since": 45,
+			"type": "LIST_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "EmailTemplate",
+			"final": true,
+			"external": false
 		}
 	},
 	"app": "tutanota",
 	"version": "45"
 }
 
-export function createEmailTemplate(values?: $Shape<$Exact<EmailTemplate>>): EmailTemplate {
-	return Object.assign(create(_TypeModel, EmailTemplateTypeRef), values)
+export function createTemplateGroupRoot(values?: $Shape<$Exact<TemplateGroupRoot>>): TemplateGroupRoot {
+	return Object.assign(create(_TypeModel, TemplateGroupRootTypeRef), values)
 }
 
-export type EmailTemplate = {
-	_type: TypeRef<EmailTemplate>;
+export type TemplateGroupRoot = {
+	_type: TypeRef<TemplateGroupRoot>;
 	_errors: Object;
 
 	_format: NumberString;
-	_id: IdTuple;
+	_id: Id;
 	_ownerEncSessionKey: ?Uint8Array;
 	_ownerGroup: ?Id;
 	_permissions: Id;
-	tag: string;
-	title: string;
 
-	contents: EmailTemplateContent[];
+	knowledgeBase: Id;
+	templates: Id;
 }

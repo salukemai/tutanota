@@ -71,7 +71,6 @@ export class SettingsView implements CurrentView {
 			new SettingsFolder("appearanceSettings_label", () => Icons.Palette, "appearance", () => new AppearanceSettingsViewer()),
 		]
 
-
 		if(logins.getUserController().getTemplateMemberships().length > 0) {
 			this._userFolders.push(new SettingsFolder("template_label", () => Icons.Folder, "template", () => new TemplateListView(this, locator.templateGroupModel, locator.entityClient)))
 			this._userFolders.push(new SettingsFolder("knowledgebase_label", () => Icons.Archive, "knowledgebase", () => new KnowledgeBaseListView(this, locator.templateGroupModel, locator.entityClient)))

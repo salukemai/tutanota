@@ -13,7 +13,7 @@ import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {neverNull} from "../api/common/utils/Utils"
 
-type TemplateGroupInstances = {
+export type TemplateGroupInstances = {
 	groupInfo: GroupInfo,
 	groupRoot: TemplateGroupRoot
 }

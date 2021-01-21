@@ -15,11 +15,9 @@ import {ButtonColors, ButtonType} from "../gui/base/ButtonN"
 import stream from "mithril/stream/stream.js"
 import {KnowledgeBaseEntryView} from "./KnowledgeBaseEntryView"
 import {locator} from "../api/main/MainLocator"
-import {KnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {KnowledgeBaseTemplateView} from "./KnowledgeBaseTemplateView"
-import {getListId} from "../api/common/EntityFunctions"
 import {neverNull} from "../api/common/utils/Utils"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 
@@ -148,7 +146,8 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 				}, {
 					label: "editEntry_label",
 					click: () => {
-						new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
+						// TODO: open editor
+						// new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
 					},
 					type: ButtonType.Primary
 				})
@@ -227,7 +226,8 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 
 	_showDialogWindow(knowledgeBaseModel: KnowledgeBaseModel) {
 		if (knowledgeBaseModel._templateGroupRoot) {
-			new KnowledgeBaseEditor(null, knowledgeBaseModel._templateGroupRoot.knowledgeBase, neverNull(knowledgeBaseModel._templateGroupRoot._ownerGroup), locator.entityClient)
+			// TODO: Open Editor
+			// new KnowledgeBaseEditor(null, knowledgeBaseModel._templateGroupRoot.knowledgeBase, neverNull(knowledgeBaseModel._templateGroupRoot._ownerGroup), locator.entityClient)
 		}
 
 	}

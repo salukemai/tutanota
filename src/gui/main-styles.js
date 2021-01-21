@@ -180,7 +180,7 @@ styles.registerStyle('main', () => {
 
 		".hr": {margin: 0, border: 'none', height: '1px', 'background-color': theme.content_border},
 		".border": {border: `1px solid ${theme.content_border}`},
-		".transparent-border > div": {'border-color' : "transparent !important"},
+		".transparent-border  div": {'border-color' : "transparent !important"}, // affects all children!!
 
 		".white-space-pre": {'white-space': "pre"},
 

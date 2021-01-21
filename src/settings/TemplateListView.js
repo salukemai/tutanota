@@ -16,10 +16,8 @@ import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {assertMainOrNode} from "../api/Env"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
-import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import {neverNull} from "../api/common/utils/Utils"
-import {UserController} from "../api/main/UserController"
 import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 import {EntityClient} from "../api/common/EntityClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -33,11 +31,9 @@ assertMainOrNode()
  */
 
 export class TemplateListView implements UpdatableSettingsViewer {
-	_dialog: Dialog
 	_list: ?List<EmailTemplate, TemplateRow>
 	_listId: ?Id
 	_settingsView: SettingsView
-	_templateGroupMembership: GroupMembership
 	_templateGroupRoot: ?TemplateGroupRoot
 	_templateGroupModel: TemplateGroupModel
 	_entityClient: EntityClient
@@ -45,7 +41,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 
 
 	constructor(settingsView: SettingsView, templateGroupModel: TemplateGroupModel, entityClient: EntityClient) {
-		console.log("new template list viewer")
 		this._settingsView = settingsView
 		this._entityClient = entityClient
 		this._templateGroupModel = templateGroupModel
@@ -66,7 +61,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 		const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
-				console.log("template list fetch", startId, count)
 				return this._entityClient.loadRange(EmailTemplateTypeRef, templateListId, startId, count, true)
 			},
 			loadSingle: (elementId) => {
@@ -103,7 +97,6 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg"),
 		}
-		console.log("set new template list", templateGroupRoot._id)
 		this._listId = templateListId
 		this._list = new List(listConfig)
 		this._list.loadInitial()
@@ -115,7 +108,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 		return m(".flex.flex-column.fill-absolute", [
 			m(".flex.plr-l.list-border-right.list-bg.list-header",
 				[
-					m(".flex-grow.pb.pr", m(DropDownSelectorN, { // TODO: Remove border bottom
+					m(".flex-grow.pr", m(DropDownSelectorN, {
 						label: () => "Select Group", //TODO TranslationKey
 						items: this._templateGroupModel.getGroupInstances().map(templateGroupInstance => {
 							return {
@@ -140,7 +133,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 
-	_showDialogWindow(existingTitle?: string, existingID?: string, existingContent?: string, index?: number, allowCancel: boolean = true) {
+	_showDialogWindow() {
 		const selected = this._selectedGroupRoot()
 		if (selected) {
 			new TemplateEditor(null, selected.templates, neverNull(selected._ownerGroup), locator.entityClient)
@@ -148,11 +141,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
-		console.log("event update received", updates, "current listId", this._listId, this._selectedGroupRoot)
 		return Promise.each(updates, update => {
 			const list = this._list
 			if (list && this._listId && isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameId(this._listId, update.instanceListId)) {
-				console.log("list status", list)
 				return list.entityEventReceived(update.instanceId, update.operation)
 			}
 		}).then(() => {

@@ -9,13 +9,13 @@ import {ButtonType} from "../gui/base/ButtonN"
 import {ButtonN} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
 import {Dialog} from "../gui/base/Dialog"
-import {KnowledgeBaseEditor} from "./KnowledgeBaseEditor"
-import {getListId} from "../api/common/EntityFunctions"
 import {memoized, neverNull} from "../api/common/utils/Utils"
-import {locator} from "../api/main/MainLocator"
 import {lang} from "../misc/LanguageViewModel"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {startsWith} from "../api/common/utils/StringUtils"
+import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
+import {getListId} from "../api/common/EntityFunctions"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 
 /**
  *  Renders one knowledgebase entry in the settings
@@ -39,7 +39,12 @@ export class KnowledgeBaseDetailsViewer {
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 			click: () => {
-				new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
+				//TODO: open Editor
+				//new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
+				// showKnowledgeBaseEditor(entry)
+				entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
+					showKnowledgeBaseEditor(entry, groupRoot)
+				})
 			}
 		}
 

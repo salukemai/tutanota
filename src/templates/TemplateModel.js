@@ -116,6 +116,21 @@ export class TemplateModel {
 		}
 	}
 
+	initAndGetAllTemplates(): Promise<Array<EmailTemplate>> {
+		const allEmailTemplates = []
+		return this._templateGroupModel.init().then(templateGroupInstances => {
+			Promise.each(templateGroupInstances, templateGroupInstance => {
+				return this._entityClient.loadAll(EmailTemplateTypeRef, templateGroupInstance.groupRoot.templates)
+				           .then((templates) => {
+					           allEmailTemplates.push(...templates)
+				           })
+			})
+		}).then(() => {
+			console.log("AllTemplates: ", allEmailTemplates)
+			return allEmailTemplates
+		})
+	}
+
 	getAllTemplates(): Array<EmailTemplate> {
 		return this._allTemplates
 	}

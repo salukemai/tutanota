@@ -109,7 +109,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			m(".flex.plr-l.list-border-right.list-bg.list-header",
 				[
 					m(".flex-grow.pr", m(DropDownSelectorN, {
-						label: () => "Select Group", //TODO TranslationKey
+						label: "selectGroup_label",
 						items: this._templateGroupModel.getGroupInstances().map(templateGroupInstance => {
 							return {
 								name: templateGroupInstance.groupInfo.name,

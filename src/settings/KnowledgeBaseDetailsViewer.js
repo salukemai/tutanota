@@ -14,7 +14,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {startsWith} from "../api/common/utils/StringUtils"
 import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
-import {getListId} from "../api/common/EntityFunctions"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 
 /**
@@ -39,9 +38,6 @@ export class KnowledgeBaseDetailsViewer {
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 			click: () => {
-				//TODO: open Editor
-				//new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
-				// showKnowledgeBaseEditor(entry)
 				entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
 					showKnowledgeBaseEditor(entry, groupRoot)
 				})

@@ -103,7 +103,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			m(".flex.plr-l.list-border-right.list-bg.list-header",
 				[
 					m(".flex-grow.pr", m(DropDownSelectorN, {
-						label: () => "Select Group", //TODO TranslationKey
+						label: "selectGroup_label",
 						items: this._templateGroupModel.getGroupInstances().map(templateGroupInstance => {
 							return {
 								name: templateGroupInstance.groupInfo.name,
@@ -129,8 +129,6 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	_showDialogWindow() {
 		const selected = this._selectedGroupRoot()
 		if (selected) {
-			//TODO: open Editor
-			//new KnowledgeBaseEditor(null, selected.knowledgeBase, neverNull(selected._ownerGroup), locator.entityClient)
 			showKnowledgeBaseEditor(null, selected)
 		}
 	}

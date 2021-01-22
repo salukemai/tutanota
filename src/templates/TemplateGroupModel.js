@@ -6,7 +6,6 @@ import {EventController} from "../api/main/EventController"
 import type {LoginController} from "../api/main/LoginController"
 import {EntityClient} from "../api/common/EntityClient"
 import type {EntityEventsListener} from "../api/main/EventController"
-import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -58,6 +57,4 @@ export class TemplateGroupModel {
 	getGroupInstances():Array<TemplateGroupInstances> {
 		return neverNull(this._groupInstances.getSync())
 	}
-
-
 }

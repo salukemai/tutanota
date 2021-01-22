@@ -20,6 +20,8 @@ import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {KnowledgeBaseTemplateView} from "./KnowledgeBaseTemplateView"
 import {neverNull} from "../api/common/utils/Utils"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
+import {showKnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
 
 type KnowledgebaseViewAttrs = {
 	onSubmit: (string) => void,
@@ -148,6 +150,9 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 					click: () => {
 						// TODO: open editor
 						// new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
+						locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
+							showKnowledgeBaseEditor(entry, groupRoot)
+						})
 					},
 					type: ButtonType.Primary
 				})

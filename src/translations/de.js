@@ -1303,6 +1303,11 @@ export default {
 		"noEntryFound_label": "Keine Einträge gefunden",
 		"templateTagExists_msg": "Template Tag existiert bereits!",
 		"emptyTag_msg": "Der Tag ist leer",
-		"matchingKeywords_label": "Übereinstimmende Keywords",
+		"matchingKeywords_label": "Übereinstimmende Schlüsselwörter",
+		"linkTemplate_label": "Verlinke Vorlage",
+		"selectGroup_label": "Gruppe wählen",
+		"keywords_label": "Schlüsselwörter",
+		"addEntry_label": "Eintrag hinzufügen",
+		"addTemplate_label": "Vorlage hinzufügen",
 	}
 }

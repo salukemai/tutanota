@@ -22,6 +22,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import {EntityClient} from "../api/common/EntityClient"
 import {TemplateEditorModel} from "./TemplateEditorModel"
 import {locator} from "../api/main/MainLocator"
+import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 
 /*
 	Creates an Editor Popup in which you can create a new template or edit an existing one

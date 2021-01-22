@@ -18,10 +18,11 @@ import {locator} from "../api/main/MainLocator"
 import {lastThrow} from "../api/common/utils/ArrayUtils"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {KnowledgeBaseTemplateView} from "./KnowledgeBaseTemplateView"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {showKnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
+import {attachDropdown} from "../gui/base/DropdownN"
 
 type KnowledgebaseViewAttrs = {
 	onSubmit: (string) => void,
@@ -123,19 +124,14 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 		const knowledgebase = attrs.model
 		switch (currentPage.type) {
 			case "list":
+
 				return m(".pl", renderHeaderBar(lang.get("knowledgebase_label"), {
 					label: "close_alt",
 					click: () => {
 						knowledgebase.close()
 					},
 					type: ButtonType.Secondary,
-				}, {
-					label: "addEntry_label",
-					click: () => {
-						this._showDialogWindow(knowledgebase)
-					},
-					type: ButtonType.Primary,
-				}))
+				}, this.createAddButtonAttributes()))
 			case "entry":
 				const entry = knowledgebase.selectedEntry() // this._selectedEntryStream()
 				if (!entry) return null
@@ -148,8 +144,6 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 				}, {
 					label: "editEntry_label",
 					click: () => {
-						// TODO: open editor
-						// new KnowledgeBaseEditor(entry, getListId(entry), neverNull(entry._ownerGroup), locator.entityClient)
 						locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then(groupRoot => {
 							showKnowledgeBaseEditor(entry, groupRoot)
 						})
@@ -229,12 +223,31 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 		this._pages(this._pages().slice(0, -1))
 	}
 
-	_showDialogWindow(knowledgeBaseModel: KnowledgeBaseModel) {
-		if (knowledgeBaseModel._templateGroupRoot) {
-			// TODO: Open Editor
-			// new KnowledgeBaseEditor(null, knowledgeBaseModel._templateGroupRoot.knowledgeBase, neverNull(knowledgeBaseModel._templateGroupRoot._ownerGroup), locator.entityClient)
+	createAddButtonAttributes(): ButtonAttrs {
+		const templateGroupInstances = locator.templateGroupModel.getGroupInstances()
+		if (templateGroupInstances.length === 1) {
+			return {
+				label: "addEntry_label",
+				click: () => {
+					showKnowledgeBaseEditor(null, templateGroupInstances[0].groupRoot)
+				},
+				type: ButtonType.Primary,
+			}
+		} else {
+			return attachDropdown({
+				label: "addEntry_label",
+				click: noOp,
+				type: ButtonType.Primary,
+			}, () => templateGroupInstances.map(groupInstances => {
+				return {
+					label: () => groupInstances.groupInfo.name,
+					click: () => {
+						showKnowledgeBaseEditor(null, groupInstances.groupRoot)
+					},
+					type: ButtonType.Dropdown,
+				}
+			}))
 		}
-
 	}
 }
 

@@ -20,6 +20,7 @@ import {downcast} from "../api/common/utils/Utils"
 import type {LoginController} from "../api/main/LoginController"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
+import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 
 /**
  *   Model that holds main logic for the Knowdledgebase.
@@ -37,9 +38,10 @@ export class KnowledgeBaseModel {
 	+_logins: LoginController;
 	+_entityClient: EntityClient;
 	_templateGroupRoot: ?TemplateGroupRoot
+	_templateGroupModel: TemplateGroupModel;
 
 
-	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient) {
+	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient, templateGroupModel: TemplateGroupModel) {
 		this._eventController = eventController
 		this._logins = logins
 		this._entityClient = entityClient
@@ -50,6 +52,7 @@ export class KnowledgeBaseModel {
 		this.selectedEntry = stream(null)
 		this._isActive = false
 		this._filterValue = ""
+		this._templateGroupModel = templateGroupModel
 		this._entityEventReceived = (updates) => {
 			return this._entityUpdate(updates)
 		}
@@ -57,11 +60,20 @@ export class KnowledgeBaseModel {
 	}
 
 	init(): Promise<void> {
-		return this._loadEntries().then(entries => {
-			this._allEntries = entries
+		const allEntries = []
+		return this._templateGroupModel.init().then(templateGroupInstances => {
+			Promise.each(templateGroupInstances, templateGroupInstance => {
+				return this._entityClient.loadAll(KnowledgeBaseEntryTypeRef, templateGroupInstance.groupRoot.knowledgeBase)
+				           .then((entries) => {
+					           allEntries.push(...entries)
+				           })
+			})
+		}).then(() => {
+			this._allEntries = allEntries
 			this.initAllKeywords()
 			this.filteredEntries(this._allEntries)
 		})
+
 	}
 
 	initAllKeywords() {
@@ -158,22 +170,6 @@ export class KnowledgeBaseModel {
 		}
 	}
 
-	_getKnowledgeBaseListId(): Promise<?Id> {
-		const templateGroupMembership = this._logins.getUserController().getTemplateMemberships()[0]
-		if (this._templateGroupRoot) {
-			return Promise.resolve(this._templateGroupRoot.knowledgeBase)
-		}
-		if (templateGroupMembership) {
-			return this._entityClient.load(TemplateGroupRootTypeRef, templateGroupMembership.group)
-			           .then(templateGroupRoot => {
-				           this._templateGroupRoot = templateGroupRoot
-				           return templateGroupRoot.knowledgeBase
-			           })
-		}
-		return Promise.resolve(null)
-
-	}
-
 	dispose() {
 		this._eventController.removeEntityListener(this._entityEventReceived)
 	}
@@ -186,53 +182,31 @@ export class KnowledgeBaseModel {
 		return this._entityClient.load(EmailTemplateTypeRef, templateId)
 	}
 
-	_loadEntries(): Promise<Array<KnowledgeBaseEntry>> {
-		return this._getKnowledgeBaseListId().then((listId) => {
-			if (listId) {
-				return this._entityClient.loadAll(KnowledgeBaseEntryTypeRef, listId)
-			} else {
-				return []
-			}
-		})
-	}
-
 	_entityUpdate(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.each(updates, update => {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
-					return this._getKnowledgeBaseListId().then((listId) => {
-						if (listId && listId === update.instanceListId) {
-							return this._entityClient.load(KnowledgeBaseEntryTypeRef, [listId, update.instanceId])
-							           .then((entry) => {
-								           this._allEntries.push(entry)
-								           this._sortEntries(this._allEntries)
-								           this.filter(this._filterValue)
-							           })
-						}
-					})
+					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId])
+					           .then((entry) => {
+						           this._allEntries.push(entry)
+						           this._sortEntries(this._allEntries)
+						           this.filter(this._filterValue)
+					           })
 				} else if (update.operation === OperationType.UPDATE) {
-					return this._getKnowledgeBaseListId().then((listId) => {
-						if (listId && listId === update.instanceListId) {
-							return this._entityClient.load(KnowledgeBaseEntryTypeRef, [listId, update.instanceId])
-							           .then((updatedEntry) => {
-								           findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
-								           this._allEntries.push(updatedEntry)
-								           this._sortEntries(this._allEntries)
-								           this.filter(this._filterValue)
-								           const oldSelectedEntry = this.selectedEntry()
-								           if (oldSelectedEntry && isSameId(oldSelectedEntry._id, updatedEntry._id)) {
-									           this.selectedEntry(updatedEntry)
-								           }
-							           })
-						}
-					})
+					return this._entityClient.load(KnowledgeBaseEntryTypeRef, [update.instanceListId, update.instanceId])
+					           .then((updatedEntry) => {
+						           findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
+						           this._allEntries.push(updatedEntry)
+						           this._sortEntries(this._allEntries)
+						           this.filter(this._filterValue)
+						           const oldSelectedEntry = this.selectedEntry()
+						           if (oldSelectedEntry && isSameId(oldSelectedEntry._id, updatedEntry._id)) {
+							           this.selectedEntry(updatedEntry)
+						           }
+					           })
 				} else if (update.operation === OperationType.DELETE) {
-					return this._getKnowledgeBaseListId().then((listId) => {
-						if (listId && listId === update.instanceListId) {
-							findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
-							this.filter(this._filterValue)
-						}
-					})
+					findAndRemove(this._allEntries, (e) => isSameId(getElementId(e), update.instanceId))
+					this.filter(this._filterValue)
 				}
 			}
 		}).return()

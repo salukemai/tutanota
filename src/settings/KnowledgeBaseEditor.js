@@ -83,7 +83,6 @@ class KnowledgeBaseEditor implements MComponent<KnowledgeBaseEditorModel> {
 		this._linkedTemplateButtonAttrs = attachDropdown({
 			label: () => lang.get("linkTemplate_label") + ' ▼',
 			title: "linkTemplate_label",
-			//icon: () => Icons.Add, // TODO
 			type: ButtonType.Toggle,
 			click: noOp,
 			noBubble: true,

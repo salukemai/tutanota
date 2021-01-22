@@ -48,6 +48,7 @@ export const locator: MainLocatorType = ({
 		this.entityClient = new EntityClient(worker)
 		this.templateGroupModel = new TemplateGroupModel(locator.eventController, logins, locator.entityClient)
 		this.templateModel = new TemplateModel(locator.eventController, logins, locator.entityClient, this.templateGroupModel)
+		this.knowledgebase = new KnowledgeBaseModel(locator.eventController, logins, locator.entityClient, this.templateGroupModel)
 		this.knowledgebase = new KnowledgeBaseModel(locator.eventController, logins, locator.entityClient)
 
 		this.mailModel = new MailModel(notifications, this.eventController, worker, this.entityClient)

@@ -2,11 +2,12 @@
 
 import type {ObjectStoreName} from "../search/DbFacade"
 import {DbFacade} from "../search/DbFacade"
-import type {ElementEntity, ListElementEntity} from "../../common/EntityFunctions"
-import {resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
+import {resolveTypeReference} from "../../common/EntityFunctions"
 import {uint8ArrayToBitArray} from "../crypto/CryptoUtils"
 import {getPerformanceTimestamp} from "../search/IndexUtils"
 import {decryptAndMapToInstance, decryptKey, encryptAndMapToLiteral, encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
+import type {ElementEntity, ListElementEntity} from "../../common/utils/EntityUtils"
+import {TypeRef} from "../../common/utils/EntityUtils"
 
 const DB_VERSION = 1
 

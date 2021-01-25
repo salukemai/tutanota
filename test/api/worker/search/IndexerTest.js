@@ -18,15 +18,14 @@ import {generatedIdToTimestamp, timestampToGeneratedId} from "../../../../src/ap
 import {random} from "../../../../src/api/worker/crypto/Randomizer"
 import {defer, downcast} from "../../../../src/api/common/utils/Utils"
 import {browserDataStub, mock, spy} from "../../TestUtils"
-import type  {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
+import type {QueuedBatch} from "../../../../src/api/worker/search/EventQueue"
 import {EntityRestClient} from "../../../../src/api/worker/rest/EntityRestClient"
 import {MembershipRemovedError} from "../../../../src/api/common/error/MembershipRemovedError"
 import {WhitelabelChildTypeRef} from "../../../../src/api/entities/sys/WhitelabelChild"
 import {fixedIv} from "../../../../src/api/worker/crypto/CryptoUtils"
+import type {SomeEntity} from "../../../../src/api/common/utils/EntityUtils"
 import {GENERATED_MAX_ID, getElementId, TypeRef} from "../../../../src/api/common/utils/EntityUtils";
-import type {OperationTypeEnum} from "../../../../src/api/common/TutanotaConstants"
 import {GroupDataOS, MetaDataOS} from "../../../../src/api/worker/search/SearchIndexDb"
-import type {SomeEntity} from "../../../../src/api/common/EntityFunctions"
 
 const restClientMock: EntityRestClient = downcast({})
 

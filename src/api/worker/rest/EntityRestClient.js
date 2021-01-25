@@ -8,7 +8,6 @@ import {
 	resolveSessionKey,
 	setNewOwnerEncSessionKey
 } from "../crypto/CryptoFacade"
-import type {ElementEntity, HttpMethodEnum, ListElementEntity} from "../../common/EntityFunctions"
 import {HttpMethod, MediaType, resolveTypeReference} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
@@ -16,6 +15,8 @@ import {PushIdentifierTypeRef} from "../../entities/sys/PushIdentifier"
 import {NotAuthenticatedError} from "../../common/error/RestError"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {isSameTypeRef, TypeRef} from "../../common/utils/EntityUtils";
+import type {ElementEntity, ListElementEntity, SomeEntity} from "../../common/utils/EntityUtils"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -40,7 +41,7 @@ export interface EntityRestInterface {
 	 * @param queryParams
 	 * @return Resolves the entity / list of Entities delivered by the server or the elementId of the created entity.
 	 */
-	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
+	entityRequest<T: SomeEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
 	                                                    queryParameter: ?Params, extraHeaders?: Params
 	): Promise<?T | T[] | Id>;
 

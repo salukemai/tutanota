@@ -2,13 +2,9 @@
 import type {EntityRestInterface} from "./EntityRestClient"
 import {typeRefToPath} from "./EntityRestClient"
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
-import type {ElementEntity, HttpMethodEnum, ListElementEntity} from "../../common/EntityFunctions"
-import {
-	HttpMethod,
-	resolveTypeReference
-} from "../../common/EntityFunctions"
+import {HttpMethod, resolveTypeReference} from "../../common/EntityFunctions"
 import {OperationType} from "../../common/TutanotaConstants"
-import {assertNotNull, clone, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
+import {assertNotNull, containsEventOfType, downcast, getEventOfType, neverNull} from "../../common/utils/Utils"
 import {PermissionTypeRef} from "../../entities/sys/Permission"
 import {EntityEventBatchTypeRef} from "../../entities/sys/EntityEventBatch"
 import {assertWorkerOrNode} from "../../Env"
@@ -23,21 +19,17 @@ import {NotAuthorizedError, NotFoundError} from "../../common/error/RestError"
 import {MailTypeRef} from "../../entities/tutanota/Mail"
 import type {EntityUpdate} from "../../entities/sys/EntityUpdate"
 import {RejectedSenderTypeRef} from "../../entities/sys/RejectedSender"
+import type {ElementEntity, ListElement, ListElementEntity, SomeEntity} from "../../common/utils/EntityUtils"
 import {
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
+	getElementId,
 	getLetId,
 	isSameTypeRef,
-	READ_ONLY_HEADER,
 	TypeRef
 } from "../../common/utils/EntityUtils";
-import type {ListElement} from "../../common/utils/EntityUtils"
-import {DbFacade} from "../search/DbFacade"
-import type {EntityCacheEntry, EntityCacheListInfoEntry} from "./EntityCacheDb"
-import {EntityListInfoOS, EntityRestCacheOS} from "./EntityCacheDb"
-import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/InstanceMapper"
-import {encryptKey, resolveSessionKey} from "../crypto/CryptoFacade"
+import type {EntityCacheDb, EntityCacheListInfoEntry} from "./EntityCacheDb"
 import {lastThrow} from "../../common/utils/ArrayUtils"
 
 
@@ -77,8 +69,8 @@ export class EntityRestCache implements EntityRestInterface {
 		this._db = db
 	}
 
-	entityRequest<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T,
-	                                                    queryParameter: ?Params, extraHeaders?: Params
+	entityRequest<T: SomeEntity>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params,
+	                 extraHeaders?: Params
 	): Promise<any> {
 		if (method === HttpMethod.GET && !this._ignoredTypes.find(ref => isSameTypeRef(typeRef, ref))) {
 			if ((typeRef.app === "monitor") || (queryParameter && queryParameter["version"])) {
@@ -389,7 +381,7 @@ export class EntityRestCache implements EntityRestInterface {
 		typeRef: TypeRef<*>,
 		update: EntityUpdate,
 		batch: $ReadOnlyArray<EntityUpdate>,
-	): $Promisable<EntityUpdate | null> { // do not return undefined to avoid implicit returns
+	): Promise<EntityUpdate | null> { // do not return undefined to avoid implicit returns
 		const {instanceListId, instanceId} = update
 
 		// We put new instances into cache only when it's a new instance in the cached range which is only for the list instances.
@@ -404,6 +396,8 @@ export class EntityRestCache implements EntityRestInterface {
 					element._id = [instanceListId, instanceId]
 					await this._putIntoCache(element)
 					return update
+				} else {
+					return null
 				}
 			} else if (await this._isInCacheRange(typeRef, instanceListId, instanceId)) {
 				// No need to try to download something that's not there anymore

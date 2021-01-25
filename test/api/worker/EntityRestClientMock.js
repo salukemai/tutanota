@@ -17,7 +17,7 @@ import {
 	getListId,
 	listIdPart, TypeRef
 } from "../../../src/api/common/utils/EntityUtils";
-import type {Element, ListElement} from "../../../src/api/common/utils/EntityUtils";
+import type {Element, ElementEntity, ListElement, ListElementEntity} from "../../../src/api/common/utils/EntityUtils";
 
 export class EntityRestClientMock extends EntityRestClient {
 

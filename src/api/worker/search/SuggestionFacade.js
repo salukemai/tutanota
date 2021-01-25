@@ -4,8 +4,8 @@ import {SearchTermSuggestionsOS} from "./SearchIndexDb"
 import {aes256Decrypt, aes256Encrypt, IV_BYTE_LENGTH} from "../crypto/Aes"
 import {stringToUtf8Uint8Array, utf8Uint8ArrayToString} from "../../common/utils/Encoding"
 import {random} from "../crypto/Randomizer"
-import type {SomeEntity} from "../../common/EntityFunctions"
 import {TypeRef} from "../../common/utils/EntityUtils";
+import type {SomeEntity} from "../../common/utils/EntityUtils"
 
 export type SuggestionsType = {
 	[key: string]: string[]

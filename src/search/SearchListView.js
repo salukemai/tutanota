@@ -22,15 +22,16 @@ import {logins} from "../api/main/LoginController"
 import {hasMoreResults} from "./SearchModel"
 import {Dialog} from "../gui/base/Dialog"
 import {flat, groupBy} from "../api/common/utils/ArrayUtils"
+import type {ListElementEntity} from "../api/common/utils/EntityUtils"
 import {
 	elementIdPart,
 	GENERATED_MAX_ID,
 	isSameId,
 	isSameTypeRef,
 	listIdPart,
-	sortCompareByReverseId, TypeRef
+	sortCompareByReverseId,
+	TypeRef
 } from "../api/common/utils/EntityUtils";
-import type {ListElement} from "../api/common/utils/EntityUtils"
 import {archiveMails, moveToInbox, showDeleteConfirmationDialog} from "../mail/MailGuiUtils";
 
 assertMainOrNode()

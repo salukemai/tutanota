@@ -49,9 +49,6 @@ import {compareNewestFirst, firstBiggerThanSecond, isSameTypeRef, TypeRef} from 
 import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex} from "./SearchIndexDb"
 import type {DbTransaction} from "./DbFacade"
 
-const ValueType = EC.ValueType
-const Cardinality = EC.Cardinality
-const AssociationType = EC.AssociationType
 
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 

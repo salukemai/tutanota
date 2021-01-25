@@ -45,7 +45,7 @@ import {getContactDisplayName} from "../../../src/contacts/ContactUtils"
 import type {RecipientInfo} from "../../../src/api/common/RecipientInfo"
 import {createConversationEntry} from "../../../src/api/entities/tutanota/ConversationEntry"
 import {isSameId, isSameTypeRef, TypeRef} from "../../../src/api/common/utils/EntityUtils";
-import type {Entity} from "../../../src/api/common/EntityFunctions"
+import type {Entity} from "../../../src/api/common/utils/EntityUtils"
 
 
 type TestIdGenerator = {

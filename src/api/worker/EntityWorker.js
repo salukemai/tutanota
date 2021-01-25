@@ -1,5 +1,4 @@
 // @flow
-import type {ElementEntity, Entity, HttpMethodEnum, ListElementEntity, SomeEntity} from "../common/EntityFunctions"
 import {
 	_eraseEntity,
 	_loadEntity,
@@ -12,6 +11,8 @@ import {_service} from "./rest/ServiceRestClient"
 import {assertWorkerOrNode} from "../Env"
 import {locator} from "./WorkerLocator"
 import {TypeRef} from "../common/utils/EntityUtils";
+import type {ElementEntity, Entity, ListElementEntity, SomeEntity} from "../common/utils/EntityUtils"
+import type {HttpMethodEnum} from "../common/EntityFunctions"
 
 assertWorkerOrNode()
 
@@ -43,8 +44,8 @@ export function loadMultiple<T: ElementEntity | ListElementEntity>(typeRef: Type
 	return _loadMultipleEntities(typeRef, listId, elementIds, locator.cache)
 }
 
-export function loadRange<T: ElementEntity | ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
-                                                                reverse: boolean
+export function loadRange<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number,
+                                                reverse: boolean
 ): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, count, reverse, locator.cache)
 }

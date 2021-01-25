@@ -1,7 +1,6 @@
 // @flow
 import {CryptoError} from "../common/error/CryptoError"
 import {objToError, Queue, Request} from "../common/WorkerProtocol"
-import type {ElementEntity, HttpMethodEnum, ListElementEntity, MediaTypeEnum} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import type {
@@ -52,6 +51,8 @@ import type {Country} from "../common/CountryList"
 import type {SearchRestriction} from "../worker/search/SearchTypes"
 import type {GiftCardRedeemGetReturn} from "../entities/sys/GiftCardRedeemGetReturn"
 import {TypeRef} from "../common/utils/EntityUtils";
+import type {HttpMethodEnum, MediaTypeEnum} from "../common/EntityFunctions"
+import type {ElementEntity, ListElementEntity} from "../common/utils/EntityUtils"
 
 assertMainOrNode()
 

@@ -13,10 +13,10 @@ import {
 	_updateEntity,
 	resolveTypeReference
 } from "./EntityFunctions"
+import type {ListElementEntity, SomeEntity} from "./utils/EntityUtils";
 import {GENERATED_MIN_ID, getLetId, RANGE_ITEM_LIMIT, TypeRef} from "./utils/EntityUtils";
-import type {ListElement} from "./utils/EntityUtils";
 
-function _loadRoot<T>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterface): Promise<T> {
+function _loadRoot<T: SomeEntity>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterface): Promise<T> {
 	return resolveTypeReference(typeRef).then(typeModel => {
 		let rootId = [groupId, typeModel.rootId];
 		return _loadEntity(RootInstanceTypeRef, rootId, null, target).then((root: RootInstance) => {
@@ -25,7 +25,7 @@ function _loadRoot<T>(typeRef: TypeRef<T>, groupId: Id, target: EntityRestInterf
 	})
 }
 
-function _loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: Id, target: EntityRestInterface): Promise<T[]> {
+function _loadAll<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, target: EntityRestInterface): Promise<T[]> {
 	return _loadEntityRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false, target).then(elements => {
 		if (elements.length === RANGE_ITEM_LIMIT) {
 			let lastElementId = getLetId(elements[elements.length - 1])[1]
@@ -65,7 +65,7 @@ export class EntityClient {
 		return _loadRoot(typeRef, groupId, this._target)
 	}
 
-	loadAll<T: ListElement>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
+	loadAll<T: ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: ?Id): Promise<T[]> {
 		return _loadAll(typeRef, listId, start == null ? GENERATED_MIN_ID : start, this._target)
 	}
 

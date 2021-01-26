@@ -11,13 +11,14 @@ import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {Icons} from "../gui/base/icons/Icons"
 import {getLanguageCode} from "./TemplateEditorModel"
-import {TemplateEditor} from "./TemplateEditor"
+import {showTemplateEditor} from "./TemplateEditor"
 import {Dialog} from "../gui/base/Dialog"
 import {listIdPart} from "../api/common/EntityFunctions"
 import {lang, languageByCode} from "../misc/LanguageViewModel"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {locator} from "../api/main/MainLocator"
 import {EntityClient} from "../api/common/EntityClient"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 
 export class TemplateDetailsViewer {
 	view: Function
@@ -35,7 +36,9 @@ export class TemplateDetailsViewer {
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 			click: () => {
-				new TemplateEditor(template, listIdPart(template._id), neverNull(template._ownerGroup), locator.entityClient)
+				locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(template._ownerGroup)).then(groupRoot => {
+					showTemplateEditor(template, groupRoot)
+				})
 			}
 		}
 

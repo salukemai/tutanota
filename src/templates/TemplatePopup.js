@@ -25,7 +25,7 @@ import {getLanguageCode} from "../settings/TemplateEditorModel"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {locator} from "../api/main/MainLocator"
-import {TemplateEditor} from "../settings/TemplateEditor"
+import {showTemplateEditor} from "../settings/TemplateEditor"
 import {TemplateModel} from "./TemplateModel"
 import {neverNull} from "../api/common/utils/Utils"
 
@@ -88,7 +88,7 @@ export class TemplatePopup implements ModalComponent {
 				// TODO
 				// const groupRoot = this._templateModel.getTemplateGroupRoot()
 				// if (groupRoot) {
-				// 	new TemplateEditor(null, groupRoot.templates, neverNull(groupRoot._ownerGroup), locator.entityClient)
+				// 	showTemplateEditor(null, groupRoot)
 				// }
 			},
 			icon: () => Icons.Add,

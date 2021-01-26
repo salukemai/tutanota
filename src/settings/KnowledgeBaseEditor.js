@@ -54,7 +54,6 @@ export function showKnowledgeBaseEditor(entry: ?KnowledgeBaseEntry, templateGrou
 
 class KnowledgeBaseEditor implements MComponent<KnowledgeBaseEditorModel> {
 	_selectedTemplate: Stream<?EmailTemplate>
-	_dialog: Dialog
 	_entryContentEditor: HtmlEditor
 	_enterTitleAttrs: TextFieldAttrs
 	_enterKeywordAttrs: TextFieldAttrs
@@ -114,7 +113,7 @@ class KnowledgeBaseEditor implements MComponent<KnowledgeBaseEditorModel> {
 		}
 	}
 
-	view(vnode: Vnode<KnowledgeBaseEditorModel>) {
+	view(vnode: Vnode<KnowledgeBaseEditorModel>): Children {
 		const model = vnode.attrs
 		return m("", [
 			m(TextFieldN, this._enterTitleAttrs),

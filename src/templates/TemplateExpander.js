@@ -14,11 +14,12 @@ import {isKeyPressed} from "../misc/KeyManager"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {getLanguageCode} from "../settings/TemplateEditorModel"
 import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
-import {TemplateEditor} from "../settings/TemplateEditor"
-import {listIdPart} from "../api/common/EntityFunctions"
-import {neverNull} from "../api/common/utils/Utils"
+import {showTemplateEditor} from "../settings/TemplateEditor"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
+import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
+import {neverNull} from "../api/common/utils/Utils"
+import {showKnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
@@ -83,7 +84,9 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 				m(ButtonN, {
 					label: "edit_action",
 					click: () => {
-						new TemplateEditor(template, listIdPart(template._id), neverNull(template._ownerGroup), locator.entityClient)
+						locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(template._ownerGroup)).then(groupRoot => {
+							showTemplateEditor(template, groupRoot)
+						})
 					},
 					type: ButtonType.Primary
 

@@ -25,7 +25,6 @@ export class KnowledgeBaseEditorModel {
 	_enterTitleAttrs: TextFieldAttrs
 	_entityClient: EntityClient
 	_templateGroupRoot: TemplateGroupRoot
-	_existingEntry: ?KnowledgeBaseEntry
 	+entry: KnowledgeBaseEntry
 	availableTemplates: LazyLoaded<Array<EmailTemplate>>
 	_descriptionProvider: ?() => string
@@ -81,7 +80,6 @@ export class KnowledgeBaseEditorModel {
 			return this._entityClient.update(this.entry)
 			           .catch(NotFoundError, noOp)
 		} else {
-			// set ownerGroup
 			this.entry._ownerGroup = this._templateGroupRoot._id
 			return this._entityClient.setup(this._templateGroupRoot.knowledgeBase, this.entry)
 		}

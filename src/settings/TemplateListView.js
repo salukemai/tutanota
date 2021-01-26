@@ -2,22 +2,18 @@
 
 import m from "mithril"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {Dialog} from "../gui/base/Dialog"
 import {lang} from "../misc/LanguageViewModel"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {List} from "../gui/base/List"
 import {size} from "../gui/size"
 import {SettingsView} from "./SettingsView"
 import {TemplateDetailsViewer} from "./TemplateDetailsViewer"
-import {TemplateEditor} from "./TemplateEditor"
+import {showTemplateEditor} from "./TemplateEditor"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
-import {locator} from "../api/main/MainLocator"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {assertMainOrNode} from "../api/Env"
 import {isUpdateForTypeRef} from "../api/main/EventController"
-import type {GroupMembership} from "../api/entities/sys/GroupMembership"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
-import {neverNull} from "../api/common/utils/Utils"
 import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 import {EntityClient} from "../api/common/EntityClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
@@ -136,7 +132,9 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	_showDialogWindow() {
 		const selected = this._selectedGroupRoot()
 		if (selected) {
-			new TemplateEditor(null, selected.templates, neverNull(selected._ownerGroup), locator.entityClient)
+			// TODO: OPEN EDITOR
+			// new TemplateEditor(null, selected.templates, neverNull(selected._ownerGroup), locator.entityClient)
+			showTemplateEditor(null, selected)
 		}
 	}
 

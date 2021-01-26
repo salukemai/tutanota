@@ -77,14 +77,26 @@ export class KnowledgeBaseModel {
 	}
 
 	initAllKeywords() {
+		console.log("INIT ALL KEYWORDS")
+		console.log("ALL ENTRIES ", this._allEntries)
 		this._allKeywords = []
-		for (const entry of this._allEntries) {
-			for (const keyword of entry.keywords) {
-				if (!this._allKeywords.includes(keyword.keyword)) {
-					this._allKeywords.push(keyword.keyword)
-				}
-			}
-		}
+		this._allEntries.forEach(entry => {
+			console.log("ENTRY", entry)
+			entry.keywords.forEach(keyword => {
+				this._allKeywords.push(keyword.keyword)
+			})
+		})
+		console.log("ALL KEYWORDS", this._allKeywords)
+		// for (const entry of this._allEntries) {
+		// 	console.log("ENTRY: ", entry)
+		// 	for (const keyword of entry.keywords) {
+		// 		console.log("KEYWORD: ", keyword)
+		// 		if (!this._allKeywords.includes(keyword.keyword)) {
+		// 			console.log("push keyword: ", keyword.keyword)
+		// 			this._allKeywords.push(keyword.keyword)
+		// 		}
+		// 	}
+		// }
 	}
 
 	containsResult(): boolean {
@@ -125,6 +137,8 @@ export class KnowledgeBaseModel {
 	}
 
 	sortEntriesByMatchingKeywords(emailContent: string) {
+		console.log("EMAIL CONTENT", emailContent)
+		console.log("ALL KEYWORDS", this._allKeywords)
 		this._matchedKeywordsInContent = []
 		const emailContentNoTags = emailContent.replace(/(<([^>]+)>)/ig, "") // remove all html tags
 		this._allKeywords.forEach(keyword => {
@@ -132,6 +146,7 @@ export class KnowledgeBaseModel {
 				this._matchedKeywordsInContent.push(keyword)
 			}
 		})
+		console.log("MATCHED KEYWORDS: ", this._matchedKeywordsInContent)
 		this._sortEntries(this._allEntries)
 		this._filterValue = ""
 		this.filteredEntries(this._allEntries)

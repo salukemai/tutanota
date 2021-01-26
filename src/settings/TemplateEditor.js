@@ -48,19 +48,24 @@ export function showTemplateEditor(template: ?EmailTemplate, templateGroupRoot: 
 		middle: () => lang.get(editorModel.template._id ? "editTemplate_action" : "createTemplate_action")
 	}
 
-	const dialog = Dialog.largeDialogN(headerBarAttrs, TemplateEditor, editorModel)
+	const dialog = Dialog.largeDialogN(headerBarAttrs, TemplateEditor, {model: editorModel})
 	dialog.show()
 }
 
-class TemplateEditor implements MComponent<TemplateEditorModel> {
+type TemplateEditorAttrs = {
+	model: TemplateEditorModel
+}
+
+
+class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 	_templateContentEditor: HtmlEditor
 
 	_enterTitleAttrs: TextFieldAttrs
 	_enterTagAttrs: TextFieldAttrs
 	_chooseLanguageAttrs: TextFieldAttrs
 
-	constructor(vnode: Vnode<TemplateEditorModel>) {
-		const model = vnode.attrs
+	constructor(vnode: Vnode<TemplateEditorAttrs>) {
+		const model = vnode.attrs.model
 		console.log("vnode", vnode)
 
 		this._templateContentEditor = new HtmlEditor("content_label", {enabled: true})
@@ -170,7 +175,7 @@ class TemplateEditor implements MComponent<TemplateEditorModel> {
 		}
 	}
 
-	view(vnode: Vnode<TemplateEditorModel>): Children {
+	view(vnode: Vnode<TemplateEditorAttrs>): Children {
 		return m("", [
 			m(TextFieldN, this._enterTitleAttrs),
 			m(TextFieldN, this._enterTagAttrs),

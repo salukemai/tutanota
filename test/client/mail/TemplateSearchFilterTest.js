@@ -1,6 +1,6 @@
 // @flow
 
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {searchInTemplates} from "../../../src/templates/TemplateSearchFilter"
 import type {EmailTemplate} from "../../../src/api/entities/tutanota/EmailTemplate"
 import {createEmailTemplate} from "../../../src/api/entities/tutanota/EmailTemplate"

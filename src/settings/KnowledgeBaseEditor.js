@@ -17,13 +17,13 @@ import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
 import type {KeyPress} from "../misc/KeyManager"
 import {Keys} from "../api/common/TutanotaConstants"
-import {elementIdPart, listIdPart} from "../api/common/EntityFunctions"
 import {Icon} from "../gui/base/Icon"
 import {locator} from "../api/main/MainLocator"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import {attachDropdown} from "../gui/base/DropdownN"
 import {UserError} from "../api/common/error/UserError"
 import {showUserError} from "../misc/ErrorHandlerImpl"
+import {elementIdPart, listIdPart} from "../api/common/utils/EntityUtils"
 
 /**
  *  Editor to edit / add a knowledgebase entry
@@ -61,6 +61,7 @@ class KnowledgeBaseEditor implements MComponent<KnowledgeBaseEditorModel> {
 
 	constructor(vnode: Vnode<KnowledgeBaseEditorModel>) {
 		const model = vnode.attrs
+		console.log("vnode", vnode)
 		this._enterTitleAttrs = {
 			label: "title_label",
 			value: model.title

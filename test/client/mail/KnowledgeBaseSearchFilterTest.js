@@ -1,6 +1,6 @@
 // @flow
 
-import o from "ospec/ospec.js"
+import o from "ospec"
 import {knowledgeBaseSearch} from "../../../src/knowledgebase/KnowledgeBaseSearchFilter.js"
 import type {KnowledgeBaseEntry} from "../../../src/api/entities/tutanota/KnowledgeBaseEntry"
 import {createKnowledgeBaseEntry} from "../../../src/api/entities/tutanota/KnowledgeBaseEntry"

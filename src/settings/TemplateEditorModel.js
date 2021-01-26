@@ -6,7 +6,6 @@ import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateC
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {createEmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 import {clone, downcast, noOp} from "../api/common/utils/Utils"
-import {getElementId} from "../api/common/EntityFunctions"
 import {TemplateModel} from "../templates/TemplateModel"
 import {locator} from "../api/main/MainLocator"
 import {EntityClient} from "../api/common/EntityClient"
@@ -15,6 +14,7 @@ import {createEmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {NotFoundError} from "../api/common/error/RestError"
 import stream from "mithril/stream/stream.js"
 import {UserError} from "../api/common/error/UserError"
+import {getElementId} from "../api/common/utils/EntityUtils"
 
 export class TemplateEditorModel {
 	_allLanguages: Array<Language>

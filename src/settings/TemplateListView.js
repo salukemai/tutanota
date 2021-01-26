@@ -18,7 +18,7 @@ import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 import {EntityClient} from "../api/common/EntityClient"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
-import {isSameId} from "../api/common/EntityFunctions"
+import {isSameId} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 

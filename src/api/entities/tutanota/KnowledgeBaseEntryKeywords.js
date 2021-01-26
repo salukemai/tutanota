@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const KnowledgeBaseEntryKeywordsTypeRef: TypeRef<KnowledgeBaseEntryKeywords> = new TypeRef("tutanota", "KnowledgeBaseEntryKeywords")
@@ -14,18 +14,14 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1168,
-			"since": 45,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"keyword": {
-			"name": "keyword",
 			"id": 1169,
-			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,

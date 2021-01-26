@@ -61,8 +61,6 @@ import {DomRectReadOnlyPolyfilled} from "../gui/base/Dropdown"
 import {TEMPLATE_POPUP_HEIGHT, TemplatePopup} from "../templates/TemplatePopup"
 import {showUserError} from "../misc/ErrorHandlerImpl"
 import {formatPrice} from "../subscription/PriceUtils"
-import {templateModel} from "../templates/TemplateModel"
-import {knowledgebase} from "../knowledgebase/KnowledgeBaseModel"
 import {KnowledgeBaseView} from "../knowledgebase/KnowledgeBaseView"
 
 export type MailEditorAttrs = {

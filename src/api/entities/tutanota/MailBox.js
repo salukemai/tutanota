@@ -95,7 +95,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "44"
+	"version": "45"
 }
 
 export function createMailBox(values?: $Shape<$Exact<MailBox>>): MailBox {

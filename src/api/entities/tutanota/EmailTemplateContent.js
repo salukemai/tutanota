@@ -1,6 +1,6 @@
 // @flow
 
-import {create, TypeRef} from "../../common/EntityFunctions"
+import {create, TypeRef} from "../../common/utils/EntityUtils"
 
 
 export const EmailTemplateContentTypeRef: TypeRef<EmailTemplateContent> = new TypeRef("tutanota", "EmailTemplateContent")
@@ -14,27 +14,21 @@ export const _TypeModel: TypeModel = {
 	"encrypted": false,
 	"values": {
 		"_id": {
-			"name": "_id",
 			"id": 1154,
-			"since": 45,
 			"type": "CustomId",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
 		"languageCode": {
-			"name": "languageCode",
 			"id": 1156,
-			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,
 			"encrypted": true
 		},
 		"text": {
-			"name": "text",
 			"id": 1155,
-			"since": 45,
 			"type": "String",
 			"cardinality": "One",
 			"final": false,

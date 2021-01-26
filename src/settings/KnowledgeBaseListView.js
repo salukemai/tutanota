@@ -6,7 +6,6 @@ import {KnowledgeBaseDetailsViewer} from "./KnowledgeBaseDetailsViewer"
 import type {KnowledgeBaseEntry} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {KnowledgeBaseEntryTypeRef} from "../api/entities/tutanota/KnowledgeBaseEntry"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {locator} from "../api/main/MainLocator"
 import {lang} from "../misc/LanguageViewModel"
 import {List} from "../gui/base/List"
 import type {EntityUpdateData} from "../api/main/EventController"
@@ -18,8 +17,8 @@ import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 import {EntityClient} from "../api/common/EntityClient"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import {isSameId} from "../api/common/EntityFunctions"
 import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
+import {isSameId} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
 

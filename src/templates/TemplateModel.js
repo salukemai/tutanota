@@ -9,13 +9,13 @@ import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import type {EntityEventsListener} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
-import {getElementId, isSameId} from "../api/common/EntityFunctions"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
 import {EntityClient} from "../api/common/EntityClient"
 import type {LoginController} from "../api/main/LoginController"
 import {TemplateGroupModel} from "./TemplateGroupModel"
+import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 
 /**
  *   Model that holds main logic for the Template Feature.

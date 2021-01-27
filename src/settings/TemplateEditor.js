@@ -35,6 +35,7 @@ export function showTemplateEditor(template: ?EmailTemplate, templateGroupRoot: 
 	}
 
 	const saveAction = () => {
+		console.log("save")
 		editorModel.save()
 		           .then(() => {
 			           dialog.close()
@@ -44,7 +45,7 @@ export function showTemplateEditor(template: ?EmailTemplate, templateGroupRoot: 
 
 	let headerBarAttrs: DialogHeaderBarAttrs = {
 		left: [{label: 'cancel_action', click: dialogCloseAction, type: ButtonType.Secondary}],
-		right: [{label: 'save_action', click: () => saveAction, type: ButtonType.Primary}],
+		right: [{label: 'save_action', click: saveAction, type: ButtonType.Primary}],
 		middle: () => lang.get(editorModel.template._id ? "editTemplate_action" : "createTemplate_action")
 	}
 
@@ -66,11 +67,14 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 
 	constructor(vnode: Vnode<TemplateEditorAttrs>) {
 		const model = vnode.attrs.model
-		console.log("vnode", vnode)
 
 		this._templateContentEditor = new HtmlEditor("content_label", {enabled: true})
 			.showBorders()
 			.setMinHeight(500)
+
+		model.setContentProvider(() => {
+			return this._templateContentEditor.getValue()
+		})
 
 		// init all values
 		const clientLanguageCode = lang.code
@@ -78,7 +82,7 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 			// push to added languages
 			model.initAddedLanguages(model.template.contents)
 			// init selected Language
-			model.selectedLanguage(model.isLanguageInContent(clientLanguageCode, model.template) ? clientLanguageCode : model.getAddedLanguages()[0].code)
+			model.selectedLanguage(model.isClientLanguageInContent() ? clientLanguageCode : model.getAddedLanguages()[0].code)
 			// set editor values
 			model.title(model.template.title)
 			model.tag(model.template.tag || "")
@@ -117,33 +121,34 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 			type: ButtonType.Action,
 			icon: () => Icons.More,
 			click: createDropdown(() => {
-				let additionalLanguages = model.reorganizeLanguages()
-				let buttons = []
-				for (let addedLanguage of model.getAddedLanguages()) {
-					let tempTranslatedLanguage = lang.get(addedLanguage.textId)
-					buttons.push({
-						label: () => tempTranslatedLanguage,
+				// save current content with language & create a dropdwon with all added languages & an option to add a new language
+				if(model.isExisitingLanguage()) {
+					model.updateContent(this._templateContentEditor.getValue())
+				} else {
+					model.createContent(this._templateContentEditor.getValue())
+				}
+				let additionalLanguages = model.getReorganizedLanguages()
+				let buttons = model.getAddedLanguages().map(addedLanguage => {
+					return {
+						label: () => lang.get(addedLanguage.textId),
 						click: () => {
-							model.saveLanguageContent(this._templateContentEditor.getValue(), model.template, model.selectedLanguage()) // needs to be called before .setValue, because otherwise it will set Editor value for wrong language
-							this._templateContentEditor.setValue(model.getContentFromLanguage(addedLanguage.code, model.template))
 							model.selectedLanguage(addedLanguage.code)
+							this._templateContentEditor.setValue(model.getContentFromSelectedLanguage())
 						},
 						type: ButtonType.Dropdown
-					})
-				}
+					}
+				})
 				buttons.push({
 					label: "addLanguage_action",
 					click: () => {
 						let newLanguageCode: Stream<LanguageCode> = stream(additionalLanguages[0].value)
 						let dropDownSelector = new DropDownSelector("addLanguage_action", null, additionalLanguages, newLanguageCode, 250) // dropdown with all additional languages
 						let addLanguageOkAction = (dialog) => {
-							model.saveLanguageContent(this._templateContentEditor.getValue(), model.template, model.selectedLanguage()) // same as line 101
 							model.selectedLanguage(newLanguageCode())
 							model.pushToAddedLanguages(languageByCode[newLanguageCode()])
 							this._templateContentEditor.setValue("")
 							dialog.close()
 						}
-
 						Dialog.showActionDialog({
 							title: lang.get("addLanguage_action"),
 							child: {view: () => m(dropDownSelector)},
@@ -164,10 +169,9 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 			click: () => {
 				return Dialog.confirm(() => lang.get("deleteLanguageConfirmation_msg", {"{language}": model.getTranslatedLanguage(model.selectedLanguage())})).then((confirmed) => {
 					if (confirmed) {
-						model.removeLanguageFromTemplate(model.selectedLanguage(), model.template)
-						model.removeLanguageFromAddedLanguages(model.selectedLanguage())
+						model.removeContent()
 						model.selectedLanguage(model.getAddedLanguages()[0].code)
-						this._templateContentEditor.setValue(model.getContentFromLanguage(model.selectedLanguage(), model.template))
+						this._templateContentEditor.setValue(model.getContentFromSelectedLanguage())
 					}
 					return confirmed
 				})
@@ -175,7 +179,7 @@ class TemplateEditor implements MComponent<TemplateEditorAttrs> {
 		}
 	}
 
-	view(vnode: Vnode<TemplateEditorAttrs>): Children {
+	view(): Children {
 		return m("", [
 			m(TextFieldN, this._enterTitleAttrs),
 			m(TextFieldN, this._enterTagAttrs),

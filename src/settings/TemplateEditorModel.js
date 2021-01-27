@@ -15,6 +15,7 @@ import {NotFoundError} from "../api/common/error/RestError"
 import stream from "mithril/stream/stream.js"
 import {UserError} from "../api/common/error/UserError"
 import {getElementId} from "../api/common/utils/EntityUtils"
+import {remove} from "../api/common/utils/ArrayUtils"
 
 export class TemplateEditorModel {
 	_allLanguages: Array<Language>
@@ -27,6 +28,7 @@ export class TemplateEditorModel {
 	template: EmailTemplate
 	_templateGroupRoot: TemplateGroupRoot
 	_entityClient: EntityClient
+	_contentProvider: ?() => string
 
 	constructor(template: ?EmailTemplate, templateGroupRoot: TemplateGroupRoot, entityClient: EntityClient) {
 		this._allLanguages = []
@@ -40,6 +42,7 @@ export class TemplateEditorModel {
 		this.template = template ? clone(template) : createEmailTemplate()
 		this._templateGroupRoot = templateGroupRoot
 		this._entityClient = entityClient
+		this._contentProvider = null
 	}
 
 	isUpdate(): boolean {
@@ -58,11 +61,59 @@ export class TemplateEditorModel {
 		}
 	}
 
+	setContentProvider(provider: () => string) {
+		this._contentProvider = provider
+	}
+
+	createContent(editorValue: string): void {
+		const emailTemplateContent = createEmailTemplateContent({languageCode: this.selectedLanguage(), text: editorValue})
+		this.template.contents.push(emailTemplateContent)
+	}
+
+	updateContent(editorValue: string): void {
+		this.template.contents.forEach(content => {
+			if (content.languageCode === this.selectedLanguage()) {
+				content.text = editorValue
+			}
+		})
+	}
+
+	removeContent(): void {
+		const content = this._getExistingContent()
+		if (content) {
+			remove(this.template.contents, content)
+			remove(this._addedLanguages, languageByCode[this.selectedLanguage()])
+		}
+	}
+
+	isExisitingLanguage(): boolean {
+		return this.template.contents.some((content) => {
+			return content.languageCode === this.selectedLanguage()
+		})
+	}
+
+	_getUpdatedContent(editorValue: string): void {
+		this.template.contents.forEach(content => {
+			if (content.languageCode === this.selectedLanguage()) {
+				content.text = editorValue
+			}
+		})
+	}
+
+	_getExistingContent(): ?EmailTemplateContent {
+		for (const content of this.template.contents) {
+			if (content.languageCode === this.selectedLanguage()) {
+				return content
+			}
+		}
+		return null
+	}
+
 	pushToAddedLanguages(language: Language) {
 		this._addedLanguages.push(language)
 	}
 
-	reorganizeLanguages(): Array<Object> { // sorts the languages, removes added languages from additional languages and then returns it
+	getReorganizedLanguages(): Array<Object> { // sorts the languages, removes added languages from additional languages and then returns it
 		const sortedArray = this._allLanguages.map((l) => {
 			return {name: lang.get(l.textId), value: l.code}
 		})
@@ -83,15 +134,6 @@ export class TemplateEditorModel {
 		return sortedArray
 	}
 
-	removeLanguageFromTemplate(languageCode: LanguageCode, template: EmailTemplate): void {
-		for (let i = 0; i < template.contents.length; i++) {
-			let contentLangCode = template.contents[i].languageCode
-			if (contentLangCode === languageCode) {
-				template.contents.splice(i, 1)
-				return
-			}
-		}
-	}
 
 	removeLanguageFromAddedLanguages(languageCode: LanguageCode) {
 		this._addedLanguages.splice(this._findIndex(languageCode), 1)
@@ -111,38 +153,23 @@ export class TemplateEditorModel {
 		return this._addedLanguages
 	}
 
-	getContentFromLanguage(languageCode: LanguageCode, template: EmailTemplate): string { // returns the value of the content as string
-		for (const content of template.contents) {
-			if (content.languageCode === languageCode) {
+	getContentFromSelectedLanguage(): string { // returns the value of the content as string
+		for (const content of this.template.contents) {
+			if (content.languageCode === this.selectedLanguage()) {
 				return content.text
 			}
 		}
 		return ""
 	}
 
-	saveLanguageContent(editorValue: string, template: EmailTemplate, languageCode: LanguageCode) {
-		const emailTemplateContent = this._getEmailTemplateContent(template, languageCode) // calls function
-		emailTemplateContent.text = editorValue // sets new content
-	}
-
-	_getEmailTemplateContent(template: EmailTemplate, languageCode: LanguageCode): EmailTemplateContent { // return EmailTemplateContent of current selected Language or creates a new one
-		for (const content of template.contents) { // Checks if content for the current language already exists and returns if true
-			if (content.languageCode === languageCode) {
-				return content
-			}
-		}
-		const content = createEmailTemplateContent({languageCode: languageCode}) // create a new EmailTemplateContent if it doesn't exist for the selected Language
-		template.contents.push(content)
-		return content
-	}
-
 	getTranslatedLanguage(code: LanguageCode): string {
 		return lang.get(languageByCode[code].textId)
 	}
 
-	isLanguageInContent(languageCode: LanguageCode, template: EmailTemplate): boolean { // checks if passed Language is in content of selected Template
-		for (const templateContent of template.contents) {
-			if (templateContent.languageCode === languageCode) {
+	isClientLanguageInContent(): boolean { // checks if passed Language is in content of selected Template
+		const clientLanguageCode = lang.code
+		for (const templateContent of this.template.contents) {
+			if (templateContent.languageCode === clientLanguageCode) {
 				return true
 			}
 		}
@@ -164,27 +191,36 @@ export class TemplateEditorModel {
 		return null
 	}
 
-	tagAlreadyExists(tag: string, currentTemplate: EmailTemplate): boolean {
-		let filteredTemplates
-		if (currentTemplate._id) { // null if it's a new template
-			filteredTemplates = this._templateModel.getAllTemplates().filter(template => getElementId(template) !== getElementId(currentTemplate)) // filter the current template because otherwise you can't edit it
-		} else {
-			filteredTemplates = this._templateModel.getAllTemplates()
-		}
-		return filteredTemplates.some(template => template.tag.toLowerCase() === tag.toLowerCase())
-	}
+	//
+	// tagAlreadyExists(tag: string, currentTemplate: EmailTemplate): boolean {
+	// 	let filteredTemplates
+	// 	if (currentTemplate._id) { // null if it's a new template
+	// 		filteredTemplates = this._templateModel.getAllTemplates().filter(template => getElementId(template)
+	// 			!== getElementId(currentTemplate)) // filter the current template because otherwise you can't edit it
+	// 	} else {
+	// 		filteredTemplates = this._templateModel.getAllTemplates()
+	// 	}
+	// 	return filteredTemplates.some(template => template.tag.toLowerCase() === tag.toLowerCase())
+	// }
 
 	save(): Promise<*> {
-		if(!this.title) {
+		if (!this.title()) {
 			return Promise.reject(new UserError("emptyTitle_msg"))
 		}
-		if (!this.tag) {
+		if (!this.tag()) {
 			return Promise.reject(new UserError("emptyTag_msg"))
+		}
+		if (this._contentProvider) { // save content of current language
+			const content = this._contentProvider()
+			if (this.isExisitingLanguage()) {
+				this.updateContent(content)
+			} else {
+				this.createContent(content)
+			}
 		}
 		const langWithNoContent = this.hasContent(this.template)
 		if (langWithNoContent) {
-			// return Promise.reject(new UserError(lang.get("languageContentEmpty_msg", {"{language}": this.getTranslatedLanguage(langWithNoContent)})))
-			return Promise.reject(new UserError("emptyTag_msg"))
+			return Promise.reject(new UserError(() => lang.get("languageContentEmpty_msg", {"{language}": this.getTranslatedLanguage(langWithNoContent)})))
 		}
 
 		// TODO: handle template tag exists
@@ -194,7 +230,7 @@ export class TemplateEditorModel {
 
 		if (this.template._id) {
 			return this._entityClient.update(this.template)
-			              .catch(NotFoundError, noOp)
+			           .catch(NotFoundError, noOp)
 		} else {
 			this.template._ownerGroup = this._templateGroupRoot._id
 			return this._entityClient.setup(this._templateGroupRoot.templates, this.template)

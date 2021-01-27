@@ -35,6 +35,7 @@ export class TemplateDetailsViewer {
 			icon: () => Icons.Edit,
 			type: ButtonType.Action,
 			click: () => {
+				console.log("edit")
 				locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(template._ownerGroup)).then(groupRoot => {
 					showTemplateEditor(template, groupRoot)
 				})
@@ -46,6 +47,7 @@ export class TemplateDetailsViewer {
 			icon: () => Icons.Trash,
 			type: ButtonType.Action,
 			click: () => {
+				console.log("remove")
 				Dialog.confirm("deleteTemplate_msg").then((confirmed) => {
 					if (confirmed) {
 						const promise = entityClient.erase(template)

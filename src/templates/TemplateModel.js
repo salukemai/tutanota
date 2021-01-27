@@ -3,8 +3,6 @@ import type {LanguageCode} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {searchInTemplates} from "./TemplateSearchFilter"
 import {downcast, neverNull} from "../api/common/utils/Utils"
-import type {NavAction} from "./TemplatePopup"
-import {SELECT_NEXT_TEMPLATE} from "./TemplatePopup"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import type {EntityEventsListener} from "../api/main/EventController"
@@ -12,7 +10,7 @@ import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {OperationType} from "../api/common/TutanotaConstants"
 import stream from "mithril/stream/stream.js"
-import {EntityClient} from "../api/common/EntityClient"
+import type {EntityClient} from "../api/common/EntityClient"
 import type {LoginController} from "../api/main/LoginController"
 import {TemplateGroupModel} from "./TemplateGroupModel"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
@@ -22,6 +20,10 @@ import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
  *   Handles things like returning the selected Template, selecting Templates, indexes, scrolling.
  */
 
+export type NavAction = "previous" | "next";
+
+export const SELECT_NEXT_TEMPLATE = "next";
+export const SELECT_PREV_TEMPLATE = "previous";
 
 export class TemplateModel {
 	_allTemplates: Array<EmailTemplate>

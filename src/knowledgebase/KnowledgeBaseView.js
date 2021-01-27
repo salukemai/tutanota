@@ -89,7 +89,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 			case "list":
 				return [this._renderSearchBar(model), this._renderKeywords(model), this._renderList(model)]
 			case "entry":
-				const entry = model.selectedEntry() // this._selectedEntryStream()
+				const entry = model.selectedEntry()
 				if (!entry) return null
 				return m(KnowledgeBaseEntryView, {
 					entry: entry,
@@ -133,7 +133,7 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 					type: ButtonType.Secondary,
 				}, this.createAddButtonAttributes()))
 			case "entry":
-				const entry = knowledgebase.selectedEntry() // this._selectedEntryStream()
+				const entry = knowledgebase.selectedEntry()
 				if (!entry) return null
 				return renderHeaderBar(entry.title, {
 					label: "back_action",

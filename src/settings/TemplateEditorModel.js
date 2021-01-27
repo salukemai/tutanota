@@ -6,13 +6,13 @@ import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateC
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {createEmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 import {clone, downcast} from "../api/common/utils/Utils"
-import {EntityClient} from "../api/common/EntityClient"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
 import {createEmailTemplate, EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
 import stream from "mithril/stream/stream.js"
 import {UserError} from "../api/common/error/UserError"
 import {contains, remove} from "../api/common/utils/ArrayUtils"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
+import type {EntityClient} from "../api/common/EntityClient"
 
 
 export class TemplateEditorModel {

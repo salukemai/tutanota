@@ -4,11 +4,11 @@ import type {SelectorItem} from "../gui/base/DropDownSelectorN"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import stream from "mithril/stream/stream.js"
 import type {LanguageCode} from "../misc/LanguageViewModel"
-import {lang, languageByCode} from "../misc/LanguageViewModel"
+import {lang, languageByCode, languages} from "../misc/LanguageViewModel"
 import {TEMPLATE_POPUP_HEIGHT} from "./TemplatePopup"
 import {px} from "../gui/size"
 import {Keys} from "../api/common/TutanotaConstants"
-import {ButtonN, ButtonType} from "../gui/base/ButtonN"
+import {ButtonColors, ButtonN, ButtonType} from "../gui/base/ButtonN"
 import {TemplateModel} from "./TemplateModel"
 import {isKeyPressed} from "../misc/KeyManager"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
@@ -18,8 +18,10 @@ import {showTemplateEditor} from "../settings/TemplateEditor"
 import {locator} from "../api/main/MainLocator"
 import {Dialog} from "../gui/base/Dialog"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
-import {neverNull} from "../api/common/utils/Utils"
+import {neverNull, noOp} from "../api/common/utils/Utils"
 import {showKnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
+import {Icons} from "../gui/base/icons/Icons"
+import {attachDropdown} from "../gui/base/DropdownN"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.
@@ -38,7 +40,7 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 	_dropDownDom: HTMLElement
 
 	view({attrs}: Vnode<TemplateExpanderAttrs>): Children {
-		const {template, model} = attrs
+		const {model} = attrs
 		const selectedLanguage = model.getSelectedLanguage()
 		return m(".flex.flex-column.flex-grow", {
 			style: {
@@ -53,33 +55,56 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 				}
 			}
 		}, [
-			m(".mt-negative-s", [
-				m(DropDownSelectorN, {
-					label: "chooseLanguage_action",
-					items: this._returnLanguages(template.contents),
-					selectedValue: stream(selectedLanguage),
-					dropdownWidth: 250,
-					onButtonCreate: (buttonVnode) => {
-						this._dropDownDom = buttonVnode.dom
-						attrs.onDropdownCreate(buttonVnode)
-					},
-					selectionChangedHandler: (value) => {
-						model.setSelectedLanguage(value)
-						attrs.onReturnFocus()
-					},
-				})
-			]),
+			this._renderHeader(attrs, selectedLanguage),
 			m(".scroll.pt.flex-grow.overflow-wrap",
 				m.trust(model.getContentFromLanguage(selectedLanguage))
-			),
-			m(".flex.justify-right", [
+			)
+		])
+	}
+
+	_renderHeader(attrs: TemplateExpanderAttrs, selectedLanguage: LanguageCode): Children {
+		const {model, template} = attrs
+		return m(".flex", {}, [
+			// m(".flex-grow.mt-negative-s", m(DropDownSelectorN, {
+			// 	label: "chooseLanguage_action",
+			// 	items: this._returnLanguages(template.contents),
+			// 	selectedValue: stream(selectedLanguage),
+			// 	dropdownWidth: 250,
+			// 	onButtonCreate: (buttonVnode) => {
+			// 		this._dropDownDom = buttonVnode.dom
+			// 		attrs.onDropdownCreate(buttonVnode)
+			// 	},
+			// 	selectionChangedHandler: (value) => {
+			// 		model.setSelectedLanguage(value)
+			// 		attrs.onReturnFocus()
+			// 	},
+			// })),
+			m(".flex.center-vertically", [
+				m(ButtonN, attachDropdown({
+						label: () => selectedLanguage + ' ▼', // TODO
+						title: "chooseLanguage_action",
+						type: ButtonType.Toggle,
+						click: noOp,
+						noBubble: true,
+						colors: ButtonColors.DrawerNav
+					}, () => this._returnLanguages(template.contents).map(language => {
+						return {
+							label: () => language.value,
+							type: ButtonType.Dropdown,
+							click: () => console.log("Click"),
+						}
+					}
+					)
+				)),
 				m(ButtonN, {
 					label: "submit_label",
 					click: (e) => {
 						attrs.onSubmitted(model.getContentFromLanguage(selectedLanguage))
 						e.stopPropagation()
 					},
-					type: ButtonType.Primary,
+					type: ButtonType.ActionLarge,
+					icon: () => Icons.Add,
+					colors: ButtonColors.DrawerNav,
 				}),
 				m(ButtonN, {
 					label: "edit_action",
@@ -88,8 +113,9 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 							showTemplateEditor(template, groupRoot)
 						})
 					},
-					type: ButtonType.Primary
-
+					type: ButtonType.ActionLarge,
+					icon: () => Icons.Edit,
+					colors: ButtonColors.DrawerNav,
 				}),
 				m(ButtonN, {
 					label: "remove_action",
@@ -101,7 +127,9 @@ export class TemplateExpander implements MComponent<TemplateExpanderAttrs> {
 							}
 						})
 					},
-					type: ButtonType.Primary
+					type: ButtonType.ActionLarge,
+					icon: () => Icons.Trash,
+					colors: ButtonColors.DrawerNav,
 				})
 			])
 		])

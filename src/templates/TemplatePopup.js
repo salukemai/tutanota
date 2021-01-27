@@ -4,9 +4,10 @@ import type {ModalComponent} from "../gui/base/Modal"
 import {modal} from "../gui/base/Modal"
 import {px} from "../gui/size"
 import type {Shortcut} from "../misc/KeyManager"
+import {isKeyPressed} from "../misc/KeyManager"
 import type {PosRect} from "../gui/base/Dropdown"
-import {TextFieldN} from "../gui/base/TextFieldN"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
+import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {Keys} from "../api/common/TutanotaConstants"
 import {TemplatePopupResultRow} from "./TemplatePopupResultRow"
@@ -19,23 +20,16 @@ import {lang, languageByCode} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {windowFacade} from "../misc/WindowFacade"
-import {isKeyPressed} from "../misc/KeyManager"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {getLanguageCode} from "../settings/TemplateEditorModel"
 import type {ButtonAttrs} from "../gui/base/ButtonN"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {locator} from "../api/main/MainLocator"
-import {showTemplateEditor} from "../settings/TemplateEditor"
-import {TemplateModel} from "./TemplateModel"
-import {neverNull} from "../api/common/utils/Utils"
+import {SELECT_NEXT_TEMPLATE, SELECT_PREV_TEMPLATE, TemplateModel} from "./TemplateModel"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
 export const TEMPLATE_LIST_ENTRY_HEIGHT = 47;
 export const TEMPLATE_LIST_ENTRY_WIDTH = 354;
-export const SELECT_NEXT_TEMPLATE = "next";
-export const SELECT_PREV_TEMPLATE = "previous";
-export type NavAction = "previous" | "next";
 
 /**
  *	Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.

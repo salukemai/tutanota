@@ -28,6 +28,7 @@ import {ButtonType} from "./gui/base/ButtonN"
 import {changeSystemLanguage} from "./native/SystemApp"
 import {Request} from "./api/common/WorkerProtocol"
 import {nativeApp} from "./native/NativeWrapper"
+import {applicationPaths} from "./ApplicationPaths"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -181,22 +182,24 @@ let initialized = lang.init(en).then(() => {
 		}
 	}
 
-	let mailViewResolver = createViewResolver(() => import("./mail/MailView.js")
-		.then(module => new module.MailView()))
-	let contactViewResolver = createViewResolver(() => import("./contacts/ContactView.js")
-		.then(module => new module.ContactView()))
-	let externalLoginViewResolver = createViewResolver(() => import("./login/ExternalLoginView.js")
-		.then(module => new module.ExternalLoginView()), false)
-	let loginViewResolver = createViewResolver(() => import("./login/LoginView.js")
-		.then(module => module.login), false)
-	let settingsViewResolver = createViewResolver(() => import("./settings/SettingsView.js")
-		.then(module => new module.SettingsView()))
-	let searchViewResolver = createViewResolver(() => import("./search/SearchView.js")
-		.then(module => new module.SearchView()))
-	let contactFormViewResolver = createViewResolver(() => import("./login/ContactFormView.js")
-		.then(module => module.contactFormView), false)
-	const calendarViewResolver = createViewResolver(() => import("./calendar/CalendarView.js")
-		.then(module => new module.CalendarView()), true)
+	const paths = applicationPaths({
+		loginViewResolver: createViewResolver(() => import("./login/LoginView.js")
+			.then(module => module.login), false),
+		contactViewResolver: createViewResolver(() => import("./contacts/ContactView.js")
+			.then(module => new module.ContactView())),
+		externalLoginViewResolver: createViewResolver(() => import("./login/ExternalLoginView.js")
+			.then(module => new module.ExternalLoginView()), false),
+		mailViewResolver: createViewResolver(() => import("./mail/MailView.js")
+			.then(module => new module.MailView())),
+		settingsViewResolver: createViewResolver(() => import("./settings/SettingsView.js")
+			.then(module => new module.SettingsView())),
+		searchViewResolver: createViewResolver(() => import("./search/SearchView.js")
+			.then(module => new module.SearchView())),
+		contactFormViewResolver: createViewResolver(() => import("./login/ContactFormView.js")
+			.then(module => module.contactFormView), false),
+		calendarViewResolver: createViewResolver(() => import("./calendar/CalendarView.js")
+			.then(module => new module.CalendarView()), true)
+	})
 
 	let start = "/"
 	if (state.prefix == null) {
@@ -224,45 +227,37 @@ let initialized = lang.init(en).then(() => {
 	m.route.prefix = neverNull(state.prefix)
 	styles.init()
 
-	// keep in sync with RewriteAppResourceUrlHandler.java
-	m.route(neverNull(document.body), start, {
+	const resolvers: {[string]: RouteResolver} = {
 		"/": {
 			onmatch: (args, requestedPath) => forceLogin(args, requestedPath)
 		},
-		"/login": loginViewResolver,
-		"/signup": loginViewResolver,
-		"/recover": loginViewResolver,
-		"/takeover": loginViewResolver,
-		"/mailto": mailViewResolver,
-		"/mail": mailViewResolver,
-		"/mail/:listId": mailViewResolver,
-		"/mail/:listId/:mailId": mailViewResolver,
-		"/ext": externalLoginViewResolver,
-		"/contact": contactViewResolver,
-		"/contact/:listId": contactViewResolver,
-		"/contact/:listId/:contactId": contactViewResolver,
-		"/search/:category": searchViewResolver,
-		"/search/:category/:id": searchViewResolver,
-		"/settings": settingsViewResolver,
-		"/settings/:folder": settingsViewResolver,
-		"/contactform/:formId": contactFormViewResolver,
-		"/calendar": calendarViewResolver,
-		"/calendar/:view": calendarViewResolver,
-		"/calendar/:view/:date": calendarViewResolver,
-		"/giftcard/": loginViewResolver,
-		"/:path...": {
-			onmatch: (args: {[string]: string}, requestedPath: string): void => {
-				console.log("Not found", args, requestedPath)
-			},
-			render: (vnode: Object): VirtualElement => {
-				return m(root, m(new InfoView(() => "404", () => [
-					m("p", lang.get("notFound404_msg")),
-					m(new Button('back_action', () => window.history.back())
-						.setType(ButtonType.Primary))
-				])))
-			}
+	}
+
+	for (let path of paths) {
+		resolvers[path.root] = path.resolver
+		for (let param of path.params || []) {
+			resolvers[path.root + param] = path.resolver
 		}
-	})
+	}
+
+	// append catch all at the end because mithril will stop at the first match
+	resolvers["/:path"] = {
+		onmatch: (args: {[string]: string}, requestedPath: string): void => {
+			console.log("Not found", args, requestedPath)
+		},
+		render: (vnode: Object): VirtualElement => {
+			return m(root, m(new InfoView(() => "404", () => [
+				m("p", lang.get("notFound404_msg")),
+				m(new Button('back_action', () => window.history.back())
+					.setType(ButtonType.Primary))
+			])))
+		}
+	}
+
+
+	// keep in sync with RewriteAppResourceUrlHandler.java
+	// flow fails to resolve RouteResolver properly
+	m.route(neverNull(document.body), start, downcast(resolvers))
 
 	const workerPromise = import("./api/main/WorkerClient.js")
 	workerPromise.then((worker) => {

@@ -329,7 +329,7 @@ export class MailFacade {
 			})
 	}
 
-	checkMailForPhishing(mail: Mail, links: Array<string>): Promise<boolean> {
+	checkMailForPhishing(mail: Mail, links: Array<{href: string, innerHTML: string}>): Promise<boolean> {
 		let score = 0
 		const senderAddress = mail.sender.address
 		const senderAuthenticated = mail.authStatus === MailAuthStatus.AUTHENTICATED
@@ -359,11 +359,11 @@ export class MailFacade {
 			score += 3
 		}
 		for (const link of links) {
-			if (this._checkFieldForPhishing(ReportedMailFieldType.LINK, link)) {
+			if (this._checkFieldForPhishing(ReportedMailFieldType.LINK, link.href)) {
 				score += 6
 				break
 			} else {
-				const domain = getUrlDomain(link)
+				const domain = getUrlDomain(link.href)
 				if (domain && this._checkFieldForPhishing(ReportedMailFieldType.LINK_DOMAIN, domain)) {
 					score += 6
 					break

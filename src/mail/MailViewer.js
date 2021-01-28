@@ -768,11 +768,27 @@ export class MailViewer {
 		           .then(m.redraw)
 	}
 
-	_checkMailForPhishing(mail: Mail, links: Array<string>) {
+	_checkMailForPhishing(mail: Mail, links: Array<HTMLElement>) {
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			this._suspicious = true
 		} else if (mail.phishingStatus === MailPhishingStatus.UNKNOWN) {
-			this._mailModel.checkMailForPhishing(mail, links).then((isSuspicious) => {
+			const linkObjects = links.map((link) => {
+				return {href: link.getAttribute("href") || "", innerHTML: link.innerHTML}
+			})
+			// FIXME: remove
+			links.forEach((link) => {
+				const href = link.getAttribute("href")
+				let url
+				try {
+					url = new URL(link.innerHTML).toString()
+				} catch {
+					url = null
+				}
+				if (url != null && href !== url) {
+					console.log("LINK MISMATCH", href, url)
+				}
+			})
+			this._mailModel.checkMailForPhishing(mail, linkObjects).then((isSuspicious) => {
 				if (isSuspicious) {
 					this._suspicious = true
 					mail.phishingStatus = MailPhishingStatus.SUSPICIOUS

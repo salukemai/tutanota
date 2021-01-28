@@ -1315,4 +1315,6 @@ export type TranslationKeyType = "about_label"
 	| "templateGroup_label"
 	| "linkTemplate_label"
 	| "selectGroup_label"
+	| "selectTemplate_action"
+	| "templateNotExists_msg"
 

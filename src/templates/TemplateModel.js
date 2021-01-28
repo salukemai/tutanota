@@ -1,11 +1,9 @@
 //@flow
-import type {LanguageCode} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import {searchInTemplates} from "./TemplateSearchFilter"
-import {downcast, neverNull} from "../api/common/utils/Utils"
 import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {EmailTemplateTypeRef} from "../api/entities/tutanota/EmailTemplate"
-import type {EntityEventsListener} from "../api/main/EventController"
+import type {EntityEventsListener, EntityUpdateData} from "../api/main/EventController"
 import {EventController, isUpdateForTypeRef} from "../api/main/EventController"
 import {findAndRemove} from "../api/common/utils/ArrayUtils"
 import {OperationType} from "../api/common/TutanotaConstants"
@@ -14,6 +12,7 @@ import type {EntityClient} from "../api/common/EntityClient"
 import type {LoginController} from "../api/main/LoginController"
 import {TemplateGroupModel} from "./TemplateGroupModel"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
+import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -29,7 +28,6 @@ export class TemplateModel {
 	_allTemplates: Array<EmailTemplate>
 	_searchResults: Stream<Array<EmailTemplate>>
 	_selectedTemplate: ?EmailTemplate
-	_selectedLanguage: LanguageCode
 	_templateListId: Id
 	_hasLoaded: boolean
 	+_eventController: EventController;
@@ -38,12 +36,13 @@ export class TemplateModel {
 	+_entityClient: EntityClient;
 	_templateGroupModel: TemplateGroupModel;
 
+	_selectedContent: ?EmailTemplateContent
+
 
 	constructor(eventController: EventController, logins: LoginController, entityClient: EntityClient, templateGroupModel: TemplateGroupModel) {
 		this._eventController = eventController
 		this._logins = logins
 		this._entityClient = entityClient
-		this._selectedLanguage = downcast(lang.code)
 		this._allTemplates = []
 		this._searchResults = stream([])
 		this._selectedTemplate = null
@@ -51,28 +50,7 @@ export class TemplateModel {
 		this._templateGroupModel = templateGroupModel
 
 		this._entityEventReceived = (updates) => {
-			return Promise.each(updates, update => {
-				if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
-					if (update.operation === OperationType.CREATE) {
-						return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])
-						           .then((template) => {
-							           this._allTemplates.push(template)
-							           this._searchResults(this._allTemplates)
-						           })
-
-					} else if (update.operation === OperationType.UPDATE) {
-						return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])
-						           .then((template) => {
-							           findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
-							           this._allTemplates.push(template)
-							           this._searchResults(this._allTemplates)
-						           })
-					} else if (update.operation === OperationType.DELETE) {
-						findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
-						this._searchResults(this._allTemplates)
-					}
-				}
-			}).return()
+			return this._entityUpdate(updates)
 		}
 		this._eventController.addEntityListener(this._entityEventReceived)
 	}
@@ -85,22 +63,17 @@ export class TemplateModel {
 				           .then((templates) => {
 					           allEmailTemplates.push(...templates)
 				           })
+			}).then(() => {
+				this._allTemplates = allEmailTemplates
+				this._searchResults(this._allTemplates)
+				this.setSelectedTemplate(this.containsResult() ? this._searchResults()[0] : null)
+				// set selected content to content which includes client language or to first content of selected template
+				this._selectedContent = this._getContentWithClientLanguage()
+					? this._getContentWithClientLanguage()
+					: this._selectedTemplate ? this._selectedTemplate.contents[0] : null
+				this._hasLoaded = true
 			})
-		}).then(() => {
-			this._allTemplates = allEmailTemplates
-			this._searchResults(this._allTemplates)
-			this._hasLoaded = true
-			this.setSelectedTemplate(this.containsResult() ? this._searchResults()[0] : null) // needs to be called, because otherwise the selection would be null, even when templates are loaded. (fixes bug)
 		})
-	}
-
-	search(input: string): void {
-		if (input === "") {
-			this._searchResults(this._allTemplates)
-		} else {
-			this._searchResults(searchInTemplates(input, this._allTemplates))
-		}
-		this.setSelectedTemplate(this.containsResult() ? this._searchResults()[0] : null)
 	}
 
 	containsResult(): boolean {
@@ -111,13 +84,6 @@ export class TemplateModel {
 		return (this._selectedTemplate === template)
 	}
 
-	_updateSelectedLanguage() {
-		if (this._selectedTemplate && this._searchResults().length) {
-			let clientLanguage = lang.code
-			this._selectedLanguage = this._isLanguageInContent(clientLanguage) ? clientLanguage : downcast(neverNull(this._selectedTemplate).contents[0].languageCode)
-		}
-	}
-
 	getAllTemplates(): Array<EmailTemplate> {
 		return this._allTemplates
 	}
@@ -126,12 +92,12 @@ export class TemplateModel {
 		return this._searchResults
 	}
 
-	getSelectedLanguage(): LanguageCode {
-		return this._selectedLanguage
-	}
-
 	getSelectedTemplate(): ?EmailTemplate {
 		return this._selectedTemplate
+	}
+
+	getSelectedContent(): ?EmailTemplateContent {
+		return this._selectedContent
 	}
 
 	hasLoaded(): boolean {
@@ -142,13 +108,29 @@ export class TemplateModel {
 		return this._searchResults().indexOf(this._selectedTemplate)
 	}
 
-	setSelectedLanguage(lang: LanguageCode) { // call function to globally set a language
-		this._selectedLanguage = lang
-	}
-
 	setSelectedTemplate(template: ?EmailTemplate) { // call function to globally set a Template
 		this._selectedTemplate = template
-		this._updateSelectedLanguage()
+		if (template) {
+			this._selectedContent = this._getContentWithClientLanguage()
+				? this._getContentWithClientLanguage()
+				: template.contents[0]
+		}
+	}
+
+	setSelectedContent(content: EmailTemplateContent) {
+		const selectedTemplate = this._selectedTemplate
+		if (selectedTemplate) {
+			this._selectedContent = selectedTemplate.contents.find(c => c === content)
+		}
+	}
+
+	search(input: string): void {
+		if (input === "") {
+			this._searchResults(this._allTemplates)
+		} else {
+			this._searchResults(searchInTemplates(input, this._allTemplates))
+		}
+		this.setSelectedTemplate(this.containsResult() ? this._searchResults()[0] : null)
 	}
 
 	selectNextTemplate(action: NavAction): boolean { // returns true if selection is changed
@@ -162,34 +144,41 @@ export class TemplateModel {
 		return false
 	}
 
+	// returns the EmailTemplateContent with the Client Language when the language is included in the selected template
+	_getContentWithClientLanguage(): ?EmailTemplateContent {
+		const clientLanguageCode = lang.code
+		const selectedTemplate = this._selectedTemplate
+		return selectedTemplate ? selectedTemplate.contents.find(content => content.languageCode === clientLanguageCode) : null
+	}
+
 	dispose() {
 		this._eventController.removeEntityListener(this._entityEventReceived)
 	}
 
-	_chooseLanguage(language: LanguageCode) {
-		this._selectedLanguage = this._isLanguageInContent(language) ? language : downcast(neverNull(this._selectedTemplate).contents[0].languageCode)
-	}
+	_entityUpdate(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
+		return Promise.each(updates, update => {
+			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
+				if (update.operation === OperationType.CREATE) {
+					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])
+					           .then((template) => {
+						           this._allTemplates.push(template)
+						           this._searchResults(this._allTemplates)
+					           })
 
-	_isLanguageInContent(languageCode: LanguageCode): boolean { // returns true if passed language is within the contents of the currently selected Template
-		if (this._selectedTemplate) {
-			for (const templateContent of this._selectedTemplate.contents) {
-				if (templateContent.languageCode === languageCode) {
-					return true
+				} else if (update.operation === OperationType.UPDATE) {
+					return this._entityClient.load(EmailTemplateTypeRef, [update.instanceListId, update.instanceId])
+					           .then((template) => {
+						           findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
+						           this._allTemplates.push(template)
+						           this._searchResults(this._allTemplates)
+					           })
+				} else if (update.operation === OperationType.DELETE) {
+					findAndRemove(this._allTemplates, (t) => isSameId(getElementId(t), update.instanceId))
+					this._searchResults(this._allTemplates)
 				}
 			}
-		}
-		return false
-	}
+		}).return()
 
-	getContentFromLanguage(languageCode: LanguageCode): string { // returns the value of the content as string
-		if (this._selectedTemplate) {
-			for (const content of this._selectedTemplate.contents) {
-				if (content.languageCode === languageCode) {
-					return content.text
-				}
-			}
-		}
-		return ""
 	}
 }
 

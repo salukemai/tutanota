@@ -23,6 +23,8 @@ import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {showKnowledgeBaseEditor} from "../settings/KnowledgeBaseEditor"
 import {attachDropdown} from "../gui/base/DropdownN"
+import {NotFoundError} from "../api/common/error/RestError"
+import {Dialog} from "../gui/base/Dialog"
 
 type KnowledgebaseViewAttrs = {
 	onSubmit: (string) => void,
@@ -103,9 +105,9 @@ export class KnowledgeBaseView implements MComponent<KnowledgebaseViewAttrs> {
 						model.loadTemplate(template).then((fetchedTemplate) => {
 							templatePage.fetchedTemplate = fetchedTemplate
 							templatePage.language = model.getLanguageFromTemplate(fetchedTemplate)
+							this._pages(this._pages().concat(templatePage))
 							m.redraw()
-						})
-						this._pages(this._pages().concat(templatePage))
+						}).catch(NotFoundError, () => Dialog.error("templateNotExists_msg"))
 					},
 				})
 			case "template":

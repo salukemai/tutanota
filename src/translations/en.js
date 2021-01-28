@@ -1327,5 +1327,7 @@ export default {
 		"matchingKeywords_label": "Matching keywords:",
 		"linkTemplate_label": "Link template",
 		"selectGroup_label": "Select group",
+		"selectTemplate_action": "Select Template",
+		"templateNotExists_msg": "This template no longer exists!"
 	}
 }

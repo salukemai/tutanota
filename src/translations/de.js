@@ -1309,5 +1309,7 @@ export default {
 		"keywords_label": "Schlüsselwörter",
 		"addEntry_label": "Eintrag hinzufügen",
 		"addTemplate_label": "Vorlage hinzufügen",
+		"selectTemplate_action": "Vorlage auswählen",
+		"templateNotExists_msg": "Diese Vorlage exisitert nicht mehr!"
 	}
 }

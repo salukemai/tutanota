@@ -65,6 +65,7 @@ import type {PhishingMarker} from "../../entities/tutanota/PhishingMarker"
 import {EntityClient} from "../../common/EntityClient"
 import {getEnabledMailAddressesForGroupInfo, getUserGroupMemberships} from "../../common/utils/GroupUtils";
 import {containsId, getLetId, isSameId, isSameTypeRefByAttr, stringToCustomId} from "../../common/utils/EntityUtils";
+import {htmlToText} from "../search/IndexUtils"
 
 assertWorkerOrNode()
 
@@ -370,6 +371,15 @@ export class MailFacade {
 				}
 			}
 		}
+
+		// const hasSuspiciousLink = links.some(({href, innerHTML}) => {
+		// 	const innerText = htmlToText(href)
+		// 	const url = parseUrl(innerText)
+		// 	return url && url !== href
+		// })
+		// if (hasSuspiciousLink) {
+		// 	score += 6
+		// }
 		return Promise.resolve(7 < score)
 	}
 
@@ -549,10 +559,15 @@ function getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<
 	})
 }
 
-function getUrlDomain(link: string): ?string {
+function parseUrl(link: string): ?URL {
 	try {
-		return new URL(link).hostname
+		return new URL(link)
 	} catch (e) {
 		return null
 	}
+}
+
+function getUrlDomain(link: string): ?string {
+	const url = parseUrl(link)
+	return url && url.hostname
 }

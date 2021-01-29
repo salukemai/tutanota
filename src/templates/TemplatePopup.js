@@ -4,7 +4,7 @@ import type {ModalComponent} from "../gui/base/Modal"
 import {modal} from "../gui/base/Modal"
 import {inputLineHeight, px} from "../gui/size"
 import type {Shortcut} from "../misc/KeyManager"
-import {isKeyPressed} from "../misc/KeyManager"
+import {isKeyPressed, keyManager} from "../misc/KeyManager"
 import type {PosRect} from "../gui/base/Dropdown"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN, Type} from "../gui/base/TextFieldN"
@@ -27,6 +27,7 @@ import {neverNull, noOp} from "../api/common/utils/Utils"
 import {locator} from "../api/main/MainLocator"
 import {TemplateGroupRootTypeRef} from "../api/entities/tutanota/TemplateGroupRoot"
 import {showTemplateEditor} from "../settings/TemplateEditor"
+import {TemplateSearchBar} from "./TemplateSearchBar"
 
 export const TEMPLATE_POPUP_HEIGHT = 340;
 export const TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH = 600;
@@ -55,7 +56,8 @@ export class TemplatePopup implements ModalComponent {
 	_resizeListener: windowSizeListener
 	_redrawStream: Stream<*>
 	_templateModel: TemplateModel
-	_domInput: HTMLInputElement
+	_searchBarValue: Stream<string>
+	_selectTemplateButtonAttrs: ButtonAttrs
 
 	constructor(templateModel: TemplateModel, rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		this._rect = rect
@@ -64,21 +66,12 @@ export class TemplatePopup implements ModalComponent {
 		this._resizeListener = () => {
 			this._close()
 		}
+		this._searchBarValue = stream(highlightedText)
 
 		this._templateModel = templateModel
 		// initial search
 		this._templateModel.search(highlightedText)
 
-		this._filterTextAttrs = {
-			label: "filter_label",
-			value: stream(highlightedText),
-			focusOnCreate: true,
-			oninput: (input) => { /* Filter function */
-				templateModel.search(input)
-				this._scroll()
-			},
-
-		}
 		this._shortcuts = [
 			{
 				key: Keys.ESC,
@@ -103,6 +96,20 @@ export class TemplatePopup implements ModalComponent {
 			},
 		]
 		this._redrawStream = templateModel.getSearchResults().map(() => m.redraw())
+
+		this._selectTemplateButtonAttrs = {
+			label: "selectTemplate_action",
+			click: () => {
+				const selected = this._templateModel.getSelectedContent()
+				if (selected) {
+					this._onSubmit(selected.text)
+					this._close()
+				}
+			},
+			type: ButtonType.ActionLarge,
+			icon: () => Icons.Checkmark,
+			colors: ButtonColors.DrawerNav,
+		}
 	}
 
 	view(): Children {
@@ -136,18 +143,26 @@ export class TemplatePopup implements ModalComponent {
 	_renderHeader(): Children {
 		const selectedTemplate = this._templateModel.getSelectedTemplate()
 		return m(".flex-space-between.center-vertically", [
-			m(".flex", { // Left header wrapper
-				onkeydown: (e) => { /* simulate scroll with arrow keys */
-					if (isKeyPressed(e.keyCode, Keys.DOWN, Keys.UP)) {
-						const changedSelection = this._templateModel.selectNextTemplate(isKeyPressed(e.keyCode, Keys.UP)
+			m(TemplateSearchBar, {
+				value: this._searchBarValue,
+				placeholder: "filter_label",
+				keyHandler: (keyPress) => {
+					if (isKeyPressed(keyPress.keyCode, Keys.DOWN, Keys.UP)) {
+						const changedSelection = this._templateModel.selectNextTemplate(isKeyPressed(keyPress.keyCode, Keys.UP)
 							? SELECT_PREV_TEMPLATE
 							: SELECT_NEXT_TEMPLATE)
 						if (changedSelection) {
 							this._scroll()
 						}
+						return false
+					} else {
+						return true
 					}
 				},
-			}, m(TextFieldN, this._filterTextAttrs)), //this._renderInputField()), //TODO: use normal input field
+				oninput: (value) => {
+					this._templateModel.search(value)
+				}
+			}),
 			m(".flex-end", [
 				selectedTemplate
 					? this._renderEditButtons(selectedTemplate) // Right header wrapper
@@ -157,31 +172,14 @@ export class TemplatePopup implements ModalComponent {
 		])
 	}
 
-	_renderInputField(): Children {
-		return m(".input.input-no-clear", {
-			type: Type.Text,
-			oncreate: (vnode) => {
-				this._domInput = vnode.dom
-			},
-			oninput: (input) => {
-				this._templateModel.search(input)
-				this._scroll()
-			},
-			style: {
-				"line-height": px(50)
-			}
-		})
-	}
-
 	_renderAddButton(): Children {
 		return m(ButtonN, {
 			label: "createTemplate_action",
 			click: () => {
-				// TODO
-				// const groupRoot = this._templateModel.getTemplateGroupRoot()
-				// if (groupRoot) {
-				// 	showTemplateEditor(null, groupRoot)
-				// }
+				 const groupRootInstances = this._templateModel.getSelectedTemplateGroupRoot()
+				 if (groupRootInstances) {
+				 	showTemplateEditor(null, groupRootInstances.groupRoot)
+				 }
 			},
 			type: ButtonType.ActionLarge,
 			icon: () => Icons.Add,
@@ -211,18 +209,7 @@ export class TemplatePopup implements ModalComponent {
 				}
 				)
 			)),
-			m(ButtonN, {
-				label: "selectTemplate_action",
-				click: () => {
-					if (selectedContent) {
-						this._onSubmit(selectedContent.text)
-						this._close()
-					}
-				},
-				type: ButtonType.ActionLarge,
-				icon: () => Icons.Checkmark,
-				colors: ButtonColors.DrawerNav,
-			}),
+			m(ButtonN, this._selectTemplateButtonAttrs),
 			m(ButtonN, {
 				label: "editTemplate_action",
 				click: () => {
@@ -252,7 +239,7 @@ export class TemplatePopup implements ModalComponent {
 
 	_renderLeftColumn(): Children {
 		return [
-			m(".flex.flex-column.scroll.", { // left list
+			m(".flex.flex-column.scroll", { // left list
 					oncreate: (vnode) => {
 						this._scrollDom = vnode.dom
 					},
@@ -267,7 +254,7 @@ export class TemplatePopup implements ModalComponent {
 		return m(".flex.flex-column.click", {
 				style: {
 					maxWidth: this._isScreenWideEnough() ? px(TEMPLATE_LIST_ENTRY_WIDTH) : px(this._rect.width - 20), // subtract 20px because of padding left and right
-					backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
+					// backgroundColor: (index % 2) ? theme.list_bg : theme.list_alternate_bg
 				}
 			}, [
 				m(".flex.template-list-row" + (this._templateModel.isSelectedTemplate(template) ? ".row-selected" : ""), {

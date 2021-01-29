@@ -1317,4 +1317,5 @@ export type TranslationKeyType = "about_label"
 	| "selectGroup_label"
 	| "selectTemplate_action"
 	| "templateNotExists_msg"
+	| "selectNextTemplate_action"
 

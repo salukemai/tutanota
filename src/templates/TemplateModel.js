@@ -13,6 +13,9 @@ import type {LoginController} from "../api/main/LoginController"
 import {TemplateGroupModel} from "./TemplateGroupModel"
 import {getElementId, isSameId} from "../api/common/utils/EntityUtils"
 import type {EmailTemplateContent} from "../api/entities/tutanota/EmailTemplateContent"
+import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
+import {neverNull} from "../api/common/utils/Utils"
+import type {TemplateGroupInstances} from "./TemplateGroupModel"
 
 /**
  *   Model that holds main logic for the Template Feature.
@@ -94,6 +97,13 @@ export class TemplateModel {
 
 	getSelectedTemplate(): ?EmailTemplate {
 		return this._selectedTemplate
+	}
+	getSelectedTemplateGroupRoot(): ?TemplateGroupInstances {
+		const selected = this._selectedTemplate
+		if (selected) {
+			return this._templateGroupModel.getGroupInstances().find(groupInstance => isSameId(groupInstance.groupRoot._id, neverNull(selected._ownerGroup)))
+		}
+		return null
 	}
 
 	getSelectedContent(): ?EmailTemplateContent {

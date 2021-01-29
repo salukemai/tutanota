@@ -1310,6 +1310,7 @@ export default {
 		"addEntry_label": "Eintrag hinzufügen",
 		"addTemplate_label": "Vorlage hinzufügen",
 		"selectTemplate_action": "Vorlage auswählen",
-		"templateNotExists_msg": "Diese Vorlage exisitert nicht mehr!"
+		"templateNotExists_msg": "Diese Vorlage exisitert nicht mehr!",
+		"selectNextTemplate_action": "Selektiere nächste Vorlage"
 	}
 }

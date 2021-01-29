@@ -1328,6 +1328,7 @@ export default {
 		"linkTemplate_label": "Link template",
 		"selectGroup_label": "Select group",
 		"selectTemplate_action": "Select Template",
-		"templateNotExists_msg": "This template no longer exists!"
+		"templateNotExists_msg": "This template no longer exists!",
+		"selectNextTemplate_action": "Select next template"
 	}
 }

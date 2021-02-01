@@ -13,10 +13,7 @@ import {isUpdateForTypeRef} from "../api/main/EventController"
 import {size} from "../gui/size"
 import {assertMainOrNode} from "../api/Env"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
-import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 import {EntityClient} from "../api/common/EntityClient"
-import stream from "mithril/stream/stream.js"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {showKnowledgeBaseEditor} from "./KnowledgeBaseEditor"
 import {isSameId} from "../api/common/utils/EntityUtils"
 
@@ -30,28 +27,18 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	_list: List<KnowledgeBaseEntry, KnowledgeBaseRow>
 	_listId: ?Id
 	_settingsView: SettingsView
-	_templateGroupRoot: ?TemplateGroupRoot
-	_templateGroupModel: TemplateGroupModel
+	_templateGroupRoot: TemplateGroupRoot
 	_entityClient: EntityClient
-	_selectedGroupRoot: Stream<?TemplateGroupRoot>
 
-	constructor(settingsView: SettingsView, templateGroupModel: TemplateGroupModel, entityClient: EntityClient) {
+	constructor(settingsView: SettingsView, entityClient: EntityClient, templateGroupRoot: TemplateGroupRoot) {
 		this._settingsView = settingsView
 		this._entityClient = entityClient
-		this._templateGroupModel = templateGroupModel
-		this._selectedGroupRoot = stream(null)
-		templateGroupModel.init().then(templateGroupInstances => {
-			this._selectedGroupRoot(templateGroupInstances[0].groupRoot)
-		})
-		this._selectedGroupRoot.map(newSelection => {
-			if (newSelection) {
-				this._updateKnowledgeBaseList(newSelection)
-			}
-		})
+		this._templateGroupRoot = templateGroupRoot
+		this._initKnowledgeBaseList()
 	}
 
-	_updateKnowledgeBaseList(templateGroupRoot: TemplateGroupRoot) {
-		const knowledgebaseListId = templateGroupRoot.knowledgeBase
+	_initKnowledgeBaseList() {
+		const knowledgebaseListId = this._templateGroupRoot.knowledgeBase
 		const listConfig: ListConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
@@ -100,36 +87,16 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	view(): Children {
 		return m(".flex.flex-column.fill-absolute", [
 			m(".flex.plr-l.list-border-right.list-bg.list-header",
-				[
-					m(".flex-grow.pr", m(DropDownSelectorN, {
-						label: "selectGroup_label",
-						items: this._templateGroupModel.getGroupInstances().map(templateGroupInstance => {
-							return {
-								name: templateGroupInstance.groupInfo.name,
-								value: templateGroupInstance.groupRoot
-							}
-						}),
-						selectedValue: this._selectedGroupRoot,
-						class: "transparent-border",
-					})),
 					m(".mr-negative-s.align-self-end", m(ButtonN, {
 						label: "addEntry_label",
 						type: ButtonType.Primary,
 						click: () => {
-							this._showDialogWindow()
+							showKnowledgeBaseEditor(null, this._templateGroupRoot)
 						}
 					}))
-				]
 			),
 			m(".rel.flex-grow", this._list ? m(this._list) : null)
 		])
-	}
-
-	_showDialogWindow() {
-		const selected = this._selectedGroupRoot()
-		if (selected) {
-			showKnowledgeBaseEditor(null, selected)
-		}
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {

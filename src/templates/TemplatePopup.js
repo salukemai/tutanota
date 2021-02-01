@@ -58,6 +58,7 @@ export class TemplatePopup implements ModalComponent {
 	_templateModel: TemplateModel
 	_searchBarValue: Stream<string>
 	_selectTemplateButtonAttrs: ButtonAttrs
+	_inputDom: HTMLElement
 
 	constructor(templateModel: TemplateModel, rect: PosRect, onSubmit: (string) => void, highlightedText: string) {
 		this._rect = rect
@@ -143,26 +144,7 @@ export class TemplatePopup implements ModalComponent {
 	_renderHeader(): Children {
 		const selectedTemplate = this._templateModel.getSelectedTemplate()
 		return m(".flex-space-between.center-vertically", [
-			m(TemplateSearchBar, {
-				value: this._searchBarValue,
-				placeholder: "filter_label",
-				keyHandler: (keyPress) => {
-					if (isKeyPressed(keyPress.keyCode, Keys.DOWN, Keys.UP)) {
-						const changedSelection = this._templateModel.selectNextTemplate(isKeyPressed(keyPress.keyCode, Keys.UP)
-							? SELECT_PREV_TEMPLATE
-							: SELECT_NEXT_TEMPLATE)
-						if (changedSelection) {
-							this._scroll()
-						}
-						return false
-					} else {
-						return true
-					}
-				},
-				oninput: (value) => {
-					this._templateModel.search(value)
-				}
-			}),
+			this._renderSearchBar(),
 			m(".flex-end", [
 				selectedTemplate
 					? this._renderEditButtons(selectedTemplate) // Right header wrapper
@@ -172,8 +154,43 @@ export class TemplatePopup implements ModalComponent {
 		])
 	}
 
+	_renderSearchBar(): Children {
+		return m(TemplateSearchBar, {
+			value: this._searchBarValue,
+			placeholder: "filter_label",
+			keyHandler: (keyPress) => {
+				if (isKeyPressed(keyPress.keyCode, Keys.DOWN, Keys.UP)) {
+					const changedSelection = this._templateModel.selectNextTemplate(isKeyPressed(keyPress.keyCode, Keys.UP)
+						? SELECT_PREV_TEMPLATE
+						: SELECT_NEXT_TEMPLATE)
+					if (changedSelection) {
+						this._scroll()
+					}
+					return false
+				} else {
+					return true
+				}
+			},
+			oninput: (value) => {
+				this._templateModel.search(value)
+			},
+			oncreate: (vnode) => {
+				this._inputDom = vnode.dom.firstElementChild // firstElementChild is the input field of the input wrapper
+			}
+		})
+	}
+
 	_renderAddButton(): Children {
-		return m(ButtonN, {
+		return m("", {
+			onkeydown: (e) => {
+				// prevents tabbing into the background of the modal
+				if (isKeyPressed(e.keyCode, Keys.TAB)) {
+					this._inputDom.focus()
+					e.preventDefault()
+				}
+			}
+
+		},m(ButtonN, {
 			label: "createTemplate_action",
 			click: () => {
 				 const groupRootInstances = this._templateModel.getSelectedTemplateGroupRoot()
@@ -184,7 +201,7 @@ export class TemplatePopup implements ModalComponent {
 			type: ButtonType.ActionLarge,
 			icon: () => Icons.Add,
 			colors: ButtonColors.DrawerNav,
-		})
+		}))
 	}
 
 	_renderEditButtons(selectedTemplate: EmailTemplate): Children {

@@ -272,6 +272,8 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 			icon: () => Icons.ListOrdered,
 		}
 
+		const showKnowlegdeBaseButton = logins.getUserController().getTemplateMemberships().length > 0
+
 		const subjectFieldAttrs: TextFieldAttrs = {
 			label: "subject_label",
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
@@ -281,7 +283,7 @@ export class MailEditor implements MComponent<MailEditorAttrs> {
 				return showConfidentialButton
 					? [m(ButtonN, confidentialButtonAttrs), m(ButtonN, attachFilesButtonAttrs), toolbarButton()]
 					: [
-						m(ButtonN, templateButtonAttrs), m(ButtonN, knowledgebaseButtonAttrs), m(ButtonN, attachFilesButtonAttrs),
+						m(ButtonN, templateButtonAttrs), showKnowlegdeBaseButton ? m(ButtonN, knowledgebaseButtonAttrs) : null, m(ButtonN, attachFilesButtonAttrs),
 						toolbarButton()
 					]
 			}

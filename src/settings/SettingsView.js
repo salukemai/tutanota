@@ -59,6 +59,7 @@ export class SettingsView implements CurrentView {
 	_settingsDetailsColumn: ViewColumn;
 	_userFolders: SettingsFolder[];
 	_adminFolders: SettingsFolder[];
+	_templateGroupFolders: Array<{groupName: string, settingsFolder: SettingsFolder[]}>;
 	_selectedFolder: SettingsFolder;
 	_currentViewer: ?UpdatableSettingsViewer;
 	detailsViewer: ?UpdatableSettingsViewer; // the component for the details column. can be set by settings views
@@ -70,11 +71,6 @@ export class SettingsView implements CurrentView {
 			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
 			new SettingsFolder("appearanceSettings_label", () => Icons.Palette, "appearance", () => new AppearanceSettingsViewer()),
 		]
-
-		if(logins.getUserController().getTemplateMemberships().length > 0) {
-			this._userFolders.push(new SettingsFolder("template_label", () => Icons.Folder, "template", () => new TemplateListView(this, locator.templateGroupModel, locator.entityClient)))
-			this._userFolders.push(new SettingsFolder("knowledgebase_label", () => Icons.Archive, "knowledgebase", () => new KnowledgeBaseListView(this, locator.templateGroupModel, locator.entityClient)))
-		}
 
 		if (isDesktop()) {
 			this._userFolders.push(new SettingsFolder("desktop_label", () => Icons.Desktop, "desktop", () => {
@@ -109,6 +105,23 @@ export class SettingsView implements CurrentView {
 			}
 		}
 
+		this._templateGroupFolders = []
+		locator.templateGroupModel.init().then(templateGroupInstances => {
+				templateGroupInstances.forEach(templateGroupInstance => {
+					// Create Settingsfolder
+					let templateGroupFolder: {groupName: string, settingsFolder: SettingsFolder[]} = {
+						groupName: templateGroupInstance.groupInfo.name,
+						settingsFolder: []
+					}
+					templateGroupFolder.settingsFolder.push(
+						new SettingsFolder("template_label", () => Icons.Folder, "template-" + templateGroupInstance.groupInfo.name, () => new TemplateListView(this, locator.entityClient, templateGroupInstance.groupRoot)))
+					templateGroupFolder.settingsFolder.push(
+						new SettingsFolder("knowledgebase_label", () => Icons.Archive, "knowledgebase-" + templateGroupInstance.groupInfo.name, () => new KnowledgeBaseListView(this, locator.entityClient, templateGroupInstance.groupRoot)))
+					this._templateGroupFolders.push(templateGroupFolder)})
+
+			}
+		)
+
 		this._selectedFolder = this._userFolders[0]
 
 		const userFolderExpanded = stream(true)
@@ -130,6 +143,13 @@ export class SettingsView implements CurrentView {
 							}, this._createFolderExpanderChildren(this._adminFolders)),
 						]
 						: null,
+					this._templateGroupFolders.map(templateGroupFolder => {
+						let templateFolderExpanded = stream(true)
+						return m(FolderExpander, {
+							label: () => templateGroupFolder.groupName,
+							expanded: templateFolderExpanded,
+						}, this._createFolderExpanderChildren(templateGroupFolder.settingsFolder))
+					}),
 					isTutanotaDomain() ? this._aboutThisSoftwareLink() : null,
 				]),
 				ariaLabel: "settings_label"

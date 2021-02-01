@@ -14,10 +14,7 @@ import type {EmailTemplate} from "../api/entities/tutanota/EmailTemplate"
 import {assertMainOrNode} from "../api/Env"
 import {isUpdateForTypeRef} from "../api/main/EventController"
 import type {TemplateGroupRoot} from "../api/entities/tutanota/TemplateGroupRoot"
-import {TemplateGroupModel} from "../templates/TemplateGroupModel"
 import {EntityClient} from "../api/common/EntityClient"
-import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
-import stream from "mithril/stream/stream.js"
 import {isSameId} from "../api/common/utils/EntityUtils"
 
 assertMainOrNode()
@@ -30,30 +27,20 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	_list: ?List<EmailTemplate, TemplateRow>
 	_listId: ?Id
 	_settingsView: SettingsView
-	_templateGroupRoot: ?TemplateGroupRoot
-	_templateGroupModel: TemplateGroupModel
+	_templateGroupRoot: TemplateGroupRoot
 	_entityClient: EntityClient
-	_selectedGroupRoot: Stream<?TemplateGroupRoot>
 
 
-	constructor(settingsView: SettingsView, templateGroupModel: TemplateGroupModel, entityClient: EntityClient) {
+	constructor(settingsView: SettingsView, entityClient: EntityClient, templateGroupRoot: TemplateGroupRoot) {
 		this._settingsView = settingsView
 		this._entityClient = entityClient
-		this._templateGroupModel = templateGroupModel
-		this._selectedGroupRoot = stream(null)
+		this._templateGroupRoot = templateGroupRoot
 		this._listId = null
-		templateGroupModel.init().then(templateGroupInstances => {
-			this._selectedGroupRoot(templateGroupInstances[0].groupRoot)
-		})
-		this._selectedGroupRoot.map(newSelection => {
-			if (newSelection) {
-				this._updateTemplateList(newSelection)
-			}
-		})
+		this._initTemplateList()
 	}
 
-	_updateTemplateList(templateGroupRoot: TemplateGroupRoot) {
-		const templateListId = templateGroupRoot.templates
+	_initTemplateList() {
+		const templateListId = this._templateGroupRoot.templates
 		const listConfig: ListConfig<EmailTemplate, TemplateRow> = {
 			rowHeight: size.list_row_height,
 			fetch: (startId, count) => {
@@ -103,39 +90,16 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	view(): Children {
 		return m(".flex.flex-column.fill-absolute", [
 			m(".flex.plr-l.list-border-right.list-bg.list-header",
-				[
-					m(".flex-grow.pr", m(DropDownSelectorN, {
-						label: "selectGroup_label",
-						items: this._templateGroupModel.getGroupInstances().map(templateGroupInstance => {
-							return {
-								name: templateGroupInstance.groupInfo.name,
-								value: templateGroupInstance.groupRoot
-							}
-						}),
-						selectedValue: this._selectedGroupRoot,
-						class: "transparent-border",
-					})),
 					m(".mr-negative-s.align-self-end", m(ButtonN, {
 						label: "addTemplate_label",
 						type: ButtonType.Primary,
 						click: () => {
-							this._showDialogWindow()
+							showTemplateEditor(null, this._templateGroupRoot)
 						}
 					}))
-				]
 			),
 			m(".rel.flex-grow", this._list ? m(this._list) : null)
 		])
-	}
-
-
-	_showDialogWindow() {
-		const selected = this._selectedGroupRoot()
-		if (selected) {
-			// TODO: OPEN EDITOR
-			// new TemplateEditor(null, selected.templates, neverNull(selected._ownerGroup), locator.entityClient)
-			showTemplateEditor(null, selected)
-		}
 	}
 
 	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void> {
